@@ -65,7 +65,7 @@ Consolida a busca semântica dentro do mesmo PostgreSQL já utilizado pelo siste
 
 ## Fluxo de Funcionamento — Agente Síndico
 
-![Fluxograma Agente Síndico](./docs/fluxograma_sindico.png)
+![Fluxograma Agente Síndico](./docs/fluxograma.png)
 
 1. **Autenticação** — síndico acessa o bot e o sistema valida o perfil via JWT
 2. **Carregamento do System Prompt** — prompt versionado do perfil síndico é carregado do PostgreSQL

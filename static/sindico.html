@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoodWe AI — Painel do Síndico</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#E3000F;--red2:#ff1a26;--dark:#1a1a1a;--dark2:#252525;--dark3:#2f2f2f;--white:#fff;--muted:#888}
+body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--white);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+#login{position:fixed;inset:0;background:var(--dark);display:flex;align-items:center;justify-content:center;z-index:100}
+.box{width:360px;background:var(--dark2);border:1px solid var(--dark3);border-top:3px solid var(--red);padding:2.5rem 2rem}
+.brand{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;letter-spacing:2px}
+.brand span{color:var(--red)}
+.sub{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:2px;margin-bottom:1.8rem}
+label{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:1rem}
+input[type=text],input[type=password]{width:100%;background:var(--dark3);border:1px solid #444;color:var(--white);padding:10px 14px;font-family:'Barlow',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+input:focus{border-color:var(--red)}
+.btn{width:100%;margin-top:1.6rem;padding:12px;background:var(--red);color:var(--white);border:none;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.btn:hover{background:var(--red2)}.btn:disabled{background:#555;cursor:not-allowed}
+.err{margin-top:.8rem;font-size:13px;color:var(--red);text-align:center;min-height:18px}
+#app{display:flex;flex-direction:column;height:100vh}
+header{background:var(--dark2);border-bottom:1px solid var(--dark3);padding:0 1.5rem;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hl{display:flex;align-items:center;gap:12px}
+.mark{width:34px;height:34px;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px}
+.ht{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:600;letter-spacing:1px}
+.ht span{color:var(--red)}
+.hs{font-size:11px;color:var(--muted);letter-spacing:1px}
+.hr{display:flex;align-items:center;gap:10px}
+.dot{width:8px;height:8px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
+.badge{background:var(--dark3);border:1px solid #444;padding:3px 10px;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.lbtn{background:none;border:1px solid #444;color:var(--muted);padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Barlow',sans-serif;transition:all .2s}
+.lbtn:hover{border-color:var(--red);color:var(--red)}
+#msgs{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;scroll-behavior:smooth}
+#msgs::-webkit-scrollbar{width:4px}
+#msgs::-webkit-scrollbar-thumb{background:var(--dark3);border-radius:2px}
+.msg{display:flex;gap:10px;max-width:76%;animation:slideUp .25s ease}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+.msg.bot{align-self:flex-start}
+.av{width:32px;height:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700}
+.msg.bot .av{background:var(--red);color:var(--white)}
+.msg.user .av{background:var(--dark3);color:var(--muted);border:1px solid #444}
+.bub{padding:10px 14px;font-size:14px;line-height:1.6}
+.msg.bot .bub{background:var(--dark2);border:1px solid var(--dark3);border-left:2px solid var(--red);color:#e8e8e8}
+.msg.user .bub{background:var(--red);color:var(--white)}
+.srcs{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+.stag{font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--dark3);color:var(--muted);padding:2px 8px;border:1px solid #444}
+.typing{display:flex;gap:4px;align-items:center;padding:14px}
+.typing span{width:6px;height:6px;background:var(--red);border-radius:50%;animation:bounce .9s infinite}
+.typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+#inp{background:var(--dark2);border-top:1px solid var(--dark3);padding:1rem 1.5rem;flex-shrink:0}
+.row{display:flex;gap:10px;align-items:flex-end}
+textarea{flex:1;background:var(--dark3);border:1px solid #444;color:var(--white);padding:11px 16px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;resize:none;min-height:44px;max-height:120px;transition:border-color .2s;line-height:1.5}
+textarea:focus{border-color:var(--red)}textarea::placeholder{color:#555}
+#sbtn{width:44px;height:44px;background:var(--red);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+#sbtn:hover{background:var(--red2)}#sbtn:disabled{background:#444;cursor:not-allowed}
+#sbtn svg{width:18px;height:18px;fill:white}
+.hint{font-size:11px;color:var(--muted);margin-top:6px}
+.welcome{text-align:center;padding:3rem 1rem;animation:fadeIn .5s}
+.wicon{width:60px;height:60px;background:var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700}
+.welcome h2{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:600;margin-bottom:6px}
+.welcome p{font-size:14px;color:var(--muted);line-height:1.6}
+.sugs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:1.2rem}
+.sug{background:var(--dark2);border:1px solid #444;color:#ccc;padding:7px 13px;font-size:13px;cursor:pointer;font-family:'Barlow',sans-serif;transition:all .2s}
+.sug:hover{border-color:var(--red);color:var(--white)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="box">
+    <div class="brand">GOODWE<span>AI</span></div>
+    <div class="sub">Painel do Síndico</div>
+    <label>Usuário</label><input id="u" type="text" placeholder="seu usuário">
+    <label>Senha</label><input id="p" type="password" placeholder="••••••••">
+    <button class="btn" id="lb" onclick="login()">Entrar</button>
+    <div class="err" id="er"></div>
+  </div>
+</div>
+<div id="app" style="display:none">
+  <header>
+    <div class="hl">
+      <div class="mark">K</div>
+      <div><div class="ht">GOODWE<span>AI</span></div><div class="hs">Painel do Síndico</div></div>
+    </div>
+    <div class="hr">
+      <div class="dot"></div>
+      <span style="font-size:12px;color:var(--muted)">Online</span>
+      <div class="badge" id="bd">—</div>
+      <button class="lbtn" onclick="logout()">Sair</button>
+    </div>
+  </header>
+  <div id="msgs">
+    <div class="welcome" id="wlc">
+      <div class="wicon">K</div>
+      <h2>Olá, Síndico!</h2>
+      <p>Consulte dados do condomínio, relatórios e incidentes.</p>
+      <div class="sugs">
+        <button class="sug" onclick="sug(this)">Consumo do mês atual</button>
+        <button class="sug" onclick="sug(this)">Incidentes pendentes</button>
+        <button class="sug" onclick="sug(this)">Cargas registradas hoje</button>
+        <button class="sug" onclick="sug(this)">Resumo geral do condomínio</button>
+      </div>
+    </div>
+  </div>
+  <div id="inp">
+    <div class="row">
+      <textarea id="q" placeholder="Consulte dados do condomínio..." rows="1" onkeydown="enter(event)" oninput="resize(this)"></textarea>
+      <button id="sbtn" onclick="send()"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></button>
+    </div>
+    <div class="hint">Enter para enviar · Shift+Enter nova linha</div>
+  </div>
+</div>
+<script>
+const API='http://localhost:8000';
+let token=null;
+document.getElementById('p').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+async function login(){
+  const u=document.getElementById('u').value.trim(),p=document.getElementById('p').value;
+  const lb=document.getElementById('lb'),er=document.getElementById('er');
+  if(!u||!p){er.textContent='Preencha usuário e senha.';return}
+  lb.disabled=true;lb.textContent='Entrando...';er.textContent='';
+  try{
+    const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    if(!r.ok){er.textContent='Usuário ou senha incorretos.';lb.disabled=false;lb.textContent='Entrar';return}
+    const d=await r.json();
+    if(!['sindico','admin'].includes(d.perfil)){er.textContent='Acesso restrito ao síndico.';lb.disabled=false;lb.textContent='Entrar';return}
+    token=d.access_token;
+    document.getElementById('bd').textContent=d.perfil;
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='flex';
+    document.getElementById('q').focus();
+  }catch{er.textContent='Erro de conexão.';lb.disabled=false;lb.textContent='Entrar'}
+}
+function logout(){token=null;document.getElementById('login').style.display='flex';document.getElementById('app').style.display='none';document.getElementById('p').value='';document.getElementById('er').textContent='';document.getElementById('lb').disabled=false;document.getElementById('lb').textContent='Entrar'}
+function sug(el){document.getElementById('q').value=el.textContent;send()}
+function resize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px'}
+function enter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}}
+function addMsg(txt,tipo,fontes=[]){
+  const w=document.getElementById('wlc');if(w)w.remove();
+  const m=document.getElementById('msgs'),d=document.createElement('div');
+  d.className=`msg ${tipo}`;
+  const av=tipo==='bot'?'K':'S';
+  const fs=fontes.length?`<div class="srcs">${fontes.map(f=>`<span class="stag">${f}</span>`).join('')}</div>`:'';
+  d.innerHTML=`<div class="av">${av}</div><div><div class="bub">${txt.replace(/\n/g,'<br>')}</div>${tipo==='bot'?fs:''}</div>`;
+  m.appendChild(d);m.scrollTop=m.scrollHeight;
+}
+function showTyping(){const m=document.getElementById('msgs'),d=document.createElement('div');d.className='msg bot';d.id='typ';d.innerHTML=`<div class="av">K</div><div class="bub" style="padding:0"><div class="typing"><span></span><span></span><span></span></div></div>`;m.appendChild(d);m.scrollTop=m.scrollHeight}
+function hideTyping(){const t=document.getElementById('typ');if(t)t.remove()}
+async function send(){
+  const q=document.getElementById('q'),txt=q.value.trim();
+  if(!txt||!token)return;
+  q.value='';q.style.height='auto';document.getElementById('sbtn').disabled=true;
+  addMsg(txt,'user');showTyping();
+  try{
+    const r=await fetch(`${API}/chat/sindico`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({pergunta:txt})});
+    hideTyping();
+    if(r.status===401){logout();return}
+    const d=await r.json();addMsg(d.resposta,'bot',d.fontes||[]);
+  }catch{hideTyping();addMsg('Erro de conexão.','bot')}
+  document.getElementById('sbtn').disabled=false;q.focus();
+}
+</script>
+</body>
+</html>

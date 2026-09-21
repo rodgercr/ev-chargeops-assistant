@@ -321,7 +321,6 @@ st.markdown(
         [data-testid="stChatInputSubmitButton"]:not(:disabled),
         [data-testid="stChatInputSubmitButton"]:not(:disabled) * {
             color: #fff !important;
-            fill: #fff !important;
         }
         [data-testid="stChatInputSubmitButton"]:hover,
         [data-testid="stChatInputSubmitButton"]:focus,

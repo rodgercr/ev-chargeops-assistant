@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from routers import auth, chat, admin
 from routers import ev
 
@@ -19,7 +18,15 @@ app.include_router(chat.router,  prefix="/chat",  tags=["Chat"])
 app.include_router(admin.router, prefix="/admin", tags=["Administração"])
 app.include_router(ev.router,    prefix="/ev",    tags=["Eletropostos & Sessões"])
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+@app.get("/")
+def raiz():
+    return {
+        "sistema": "GoodWeAI — EV ChargeOps Assistant",
+        "interface": "Streamlit",
+        "executar": "streamlit run streamlit_app.py",
+        "documentacao_api": "/docs",
+    }
 
 @app.get("/api/status")
 def status():

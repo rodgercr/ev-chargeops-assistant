@@ -99,6 +99,7 @@ def listar_historico(limite: int = 50, db: Session = Depends(get_db), _=Depends(
     return [HistoricoResponse(
         id=r.id,
         usuario=r.usuario.username if r.usuario else "—",
+        session_id=r.session_id,
         pergunta=r.pergunta,
         resposta=r.resposta,
         fontes=r.fontes,

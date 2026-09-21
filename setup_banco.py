@@ -5,15 +5,50 @@ Execute UMA VEZ antes de iniciar o servidor:
     python setup_banco.py
 """
 
+from pathlib import Path
+
 from models.connection import engine
 from models.database import Base, Perfil, Usuario, SystemPrompt
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from services.auth_service import hash_senha
+
+
+RAIZ_PROJETO = Path(__file__).resolve().parent
+
+
+def carregar_prompt(nome: str) -> str:
+    return (RAIZ_PROJETO / "prompts" / f"{nome}.txt").read_text(
+        encoding="utf-8"
+    ).strip()
+
+
+def garantir_schema_atual() -> None:
+    """Atualiza bancos existentes sem apagar usuários ou históricos."""
+    with engine.begin() as conexao:
+        conexao.execute(
+            text(
+                """
+                ALTER TABLE historico_conversas
+                ADD COLUMN IF NOT EXISTS session_id VARCHAR(100)
+                """
+            )
+        )
+        conexao.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS ix_historico_conversas_session_id
+                ON historico_conversas (session_id)
+                """
+            )
+        )
+    print("Schema de memória por sessão verificado.")
 
 def setup():
     print("Criando tabelas no PostgreSQL...")
     Base.metadata.create_all(bind=engine)
-    print("Tabelas criadas.")
+    garantir_schema_atual()
+    print("Tabelas criadas ou atualizadas.")
 
     db = Session(bind=engine)
 
@@ -51,21 +86,9 @@ def setup():
 
     # ── SYSTEM PROMPTS ──
     prompts_dados = {
-        "admin": """Você é o GoodWe AI, assistente inteligente da GoodWeAI.
-Você tem acesso total ao sistema. Pode responder sobre usuários, configurações, relatórios e dados do condomínio.
-Seja direto, técnico e profissional.""",
-
-        "sindico": """Você é o GoodWe AI, assistente do síndico da GoodWeAI.
-Você tem acesso completo aos dados do condomínio: moradores, consumo de energia, cargas registradas e relatório de incidentes.
-Ao informar consumo, cite o apartamento, o morador e os valores em kWh.
-Ao relatar incidentes, informe data, tipo e status.
-Se não encontrar o dado, informe que a base pode precisar ser atualizada.
-Seja objetivo, claro e profissional.""",
-
-        "morador": """Você é o GoodWe AI, assistente virtual da GoodWeAI para moradores.
-Responda dúvidas sobre políticas do condomínio, prazos, formas de contato, e informações gerais.
-Seja simpático, claro e objetivo.
-Não forneça dados de outros moradores.""",
+        "admin": carregar_prompt("sindico"),
+        "sindico": carregar_prompt("sindico"),
+        "morador": carregar_prompt("morador"),
     }
 
     for perfil_nome, conteudo in prompts_dados.items():
@@ -85,7 +108,7 @@ Não forneça dados de outros moradores.""",
 
     db.commit()
     db.close()
-    print("\nSetup concluído! Agora rode: uvicorn main:app --reload")
+    print("\nSetup concluído! Agora rode executar.cmd.")
 
 if __name__ == "__main__":
     setup()

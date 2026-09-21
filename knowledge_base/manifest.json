@@ -1,0 +1,36 @@
+{
+  "versao": 1,
+  "descricao": "Base demonstrativa reproduzível do RAG GoodWeAI",
+  "documentos": [
+    {
+      "id": "politica-uso-eletropostos",
+      "arquivo": "politica_uso_eletropostos.md",
+      "titulo": "Política demonstrativa de uso dos eletropostos",
+      "colecoes": ["atendimento", "sindico"]
+    },
+    {
+      "id": "seguranca-recarga",
+      "arquivo": "seguranca_recarga.md",
+      "titulo": "Orientações gerais de segurança",
+      "colecoes": ["atendimento", "sindico"]
+    },
+    {
+      "id": "atendimento-faturas",
+      "arquivo": "atendimento_faturas.md",
+      "titulo": "Atendimento sobre sessões e faturas",
+      "colecoes": ["atendimento", "sindico"]
+    },
+    {
+      "id": "operacao-sindico",
+      "arquivo": "operacao_sindico.md",
+      "titulo": "Rotina operacional do síndico",
+      "colecoes": ["sindico"]
+    },
+    {
+      "id": "energia-solar",
+      "arquivo": "energia_solar.md",
+      "titulo": "Consulta de energia solar no sistema",
+      "colecoes": ["atendimento", "sindico"]
+    }
+  ]
+}

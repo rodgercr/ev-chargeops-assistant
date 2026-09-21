@@ -70,6 +70,158 @@ def contexto_sindico(db: Session, pergunta: str) -> str:
     return "\n\n".join(filter(None, partes))
 
 
+def contexto_morador(db: Session, pergunta: str, usuario_id) -> str:
+    """Monta contexto somente com dados pertencentes ao morador autenticado."""
+    if not usuario_id:
+        return "DADOS DO MORADOR: Usuário não identificado."
+
+    usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+    if usuario is None:
+        return "DADOS DO MORADOR: Usuário não encontrado."
+
+    pergunta_lower = pergunta.lower()
+    partes = [
+        f"DADOS AUTORIZADOS DO MORADOR: {usuario.nome or usuario.username}. "
+        "Não utilize nem solicite dados de outros moradores."
+    ]
+    encontrou_assunto = False
+
+    if any(w in pergunta_lower for w in [
+        "recarga", "carregamento", "consumo", "kwh", "sessão", "sessao",
+        "energia", "custo", "gastei", "histórico", "historico"
+    ]):
+        partes.append(_recargas_do_morador(db, usuario_id))
+        encontrou_assunto = True
+
+    if any(w in pergunta_lower for w in [
+        "fatura", "pagar", "pagamento", "cobrança", "cobranca", "valor",
+        "pendente", "vencimento", "inadimpl"
+    ]):
+        partes.append(_faturas_do_morador(db, usuario_id))
+        encontrou_assunto = True
+
+    if any(w in pergunta_lower for w in [
+        "solar", "geração", "geracao", "saldo", "crédito", "credito"
+    ]):
+        partes.append(_solar_do_morador(db, usuario_id))
+        encontrou_assunto = True
+
+    if any(w in pergunta_lower for w in [
+        "incidente", "falha", "problema", "erro", "chamado", "suporte"
+    ]):
+        partes.append(_incidentes_do_morador(db, usuario_id))
+        encontrou_assunto = True
+
+    if any(w in pergunta_lower for w in [
+        "eletroposto", "carregador", "disponível", "disponivel", "online",
+        "offline", "manutenção", "manutencao", "tarifa"
+    ]):
+        partes.append(_status_eletropostos(db))
+        encontrou_assunto = True
+
+    if not encontrou_assunto:
+        partes.extend([
+            _resumo_do_morador(db, usuario_id),
+            _status_eletropostos(db),
+        ])
+
+    return "\n\n".join(filter(None, partes))
+
+
+def _resumo_do_morador(db: Session, usuario_id) -> str:
+    total_sessoes, total_kwh, total_custo = db.query(
+        func.count(SessaoCarregamento.id),
+        func.sum(SessaoCarregamento.energia_kwh),
+        func.sum(SessaoCarregamento.custo_total),
+    ).filter(SessaoCarregamento.usuario_id == usuario_id).one()
+    return (
+        "RESUMO DO MORADOR: "
+        f"{total_sessoes or 0} recargas | "
+        f"{total_kwh or 0:.1f} kWh | R$ {total_custo or 0:.2f}."
+    )
+
+
+def _recargas_do_morador(db: Session, usuario_id) -> str:
+    sessoes = db.query(SessaoCarregamento)\
+        .filter(SessaoCarregamento.usuario_id == usuario_id)\
+        .order_by(desc(SessaoCarregamento.inicio))\
+        .limit(20).all()
+
+    if not sessoes:
+        return "RECARGAS DO MORADOR: Nenhuma sessão registrada."
+
+    linhas = ["RECARGAS DO MORADOR (somente do usuário autenticado):"]
+    for sessao in sessoes:
+        eletroposto = sessao.eletroposto.codigo if sessao.eletroposto else "—"
+        inicio = sessao.inicio.strftime("%d/%m/%Y %H:%M") if sessao.inicio else "—"
+        linhas.append(
+            f"- {inicio} | {eletroposto} | {sessao.energia_kwh or 0:.1f} kWh | "
+            f"R$ {sessao.custo_total or 0:.2f} | Status: {sessao.status}."
+        )
+    return "\n".join(linhas)
+
+
+def _faturas_do_morador(db: Session, usuario_id) -> str:
+    faturas = db.query(Fatura)\
+        .join(SessaoCarregamento, Fatura.sessao_id == SessaoCarregamento.id)\
+        .filter(SessaoCarregamento.usuario_id == usuario_id)\
+        .order_by(desc(Fatura.criado_em))\
+        .limit(20).all()
+
+    if not faturas:
+        return "FATURAS DO MORADOR: Nenhuma fatura registrada."
+
+    linhas = ["FATURAS DO MORADOR (somente do usuário autenticado):"]
+    for fatura in faturas:
+        vencimento = (
+            fatura.vencimento.strftime("%d/%m/%Y") if fatura.vencimento else "—"
+        )
+        linhas.append(
+            f"- R$ {fatura.valor:.2f} | Status: {fatura.status} | "
+            f"Vencimento: {vencimento}."
+        )
+    return "\n".join(linhas)
+
+
+def _solar_do_morador(db: Session, usuario_id) -> str:
+    registros = db.query(GeracaoSolar)\
+        .filter(GeracaoSolar.usuario_id == usuario_id)\
+        .order_by(desc(GeracaoSolar.mes_ano))\
+        .limit(20).all()
+
+    if not registros:
+        return "GERAÇÃO SOLAR DO MORADOR: Nenhum registro encontrado."
+
+    linhas = ["GERAÇÃO SOLAR DO MORADOR (somente do usuário autenticado):"]
+    for registro in registros:
+        linhas.append(
+            f"- {registro.mes_ano}: consumo {registro.consumo_kwh or 0:.1f} kWh | "
+            f"geração {registro.geracao_kwh or 0:.1f} kWh | "
+            f"saldo {registro.saldo_kwh or 0:.1f} kWh."
+        )
+    return "\n".join(linhas)
+
+
+def _incidentes_do_morador(db: Session, usuario_id) -> str:
+    incidentes = db.query(Incidente)\
+        .filter(Incidente.usuario_id == usuario_id)\
+        .order_by(desc(Incidente.criado_em))\
+        .limit(20).all()
+
+    if not incidentes:
+        return "INCIDENTES DO MORADOR: Nenhum incidente registrado."
+
+    linhas = ["INCIDENTES DO MORADOR (somente do usuário autenticado):"]
+    for incidente in incidentes:
+        eletroposto = incidente.eletroposto.codigo if incidente.eletroposto else "—"
+        data = incidente.criado_em.strftime("%d/%m/%Y") if incidente.criado_em else "—"
+        linhas.append(
+            f"- {data} | {eletroposto} | {incidente.tipo} | "
+            f"Status: {incidente.status} | {incidente.descricao}."
+        )
+    return "\n".join(linhas)
+
+
 def _consumo_por_usuario(db: Session) -> str:
     resultado = db.query(
         Usuario.username,
@@ -130,7 +282,9 @@ def _status_eletropostos(db: Session) -> str:
     for ep in eps:
         linhas.append(
             f"- {ep.codigo} | {ep.localizacao} | "
-            f"Potência: {ep.potencia_kw} kW | Status: {ep.status.upper()}"
+            f"Potência: {ep.potencia_kw} kW | "
+            f"Tarifa: R$ {ep.tarifa_kwh or 0:.2f}/kWh | "
+            f"Status: {ep.status.upper()}"
         )
     return "\n".join(linhas)
 

@@ -10,10 +10,43 @@ from models.database import Base, Usuario
 from models.ev_models import Eletroposto, SessaoCarregamento, Fatura, Incidente, GeracaoSolar, criar_tabelas_ev
 from datetime import datetime, timedelta
 import random
+from sqlalchemy import text
+
+
+def garantir_schema_ev() -> None:
+    """Atualiza tabelas EV existentes sem apagar os dados cadastrados."""
+    with engine.begin() as conexao:
+        conexao.execute(
+            text(
+                """
+                ALTER TABLE eletropostos
+                ADD COLUMN IF NOT EXISTS tarifa_kwh DOUBLE PRECISION
+                """
+            )
+        )
+        conexao.execute(
+            text(
+                """
+                UPDATE eletropostos
+                SET tarifa_kwh = 1.20
+                WHERE tarifa_kwh IS NULL
+                """
+            )
+        )
+        conexao.execute(
+            text(
+                """
+                ALTER TABLE eletropostos
+                ALTER COLUMN tarifa_kwh SET DEFAULT 1.20
+                """
+            )
+        )
+    print("Schema EV verificado: tarifa dos eletropostos disponível.")
 
 def setup():
     print("Criando tabelas EV...")
     criar_tabelas_ev()
+    garantir_schema_ev()
 
     db = SessionLocal()
 
@@ -124,7 +157,7 @@ def setup():
     db.close()
     print("\nSetup EV concluído!")
     print("Dados criados: 5 eletropostos, 10 sessões, 5 incidentes, geração solar.")
-    print("Agora adicione o router EV ao main.py e reinicie o servidor.")
+    print("Dados EV preparados. Agora execute o Streamlit com executar.cmd.")
 
 if __name__ == "__main__":
     setup()

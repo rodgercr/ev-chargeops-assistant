@@ -8,6 +8,7 @@ from routers.auth import get_usuario_atual
 from services.auth_service import get_system_prompt
 from services.llm_service import gerar_resposta
 import json
+import uuid
 
 router = APIRouter()
 
@@ -15,10 +16,11 @@ router = APIRouter()
 MAX_HISTORICO = 5
 
 
-def buscar_historico(db: Session, usuario_id) -> list:
-    """Busca as últimas trocas da conversa do usuário, em ordem cronológica."""
+def buscar_historico(db: Session, usuario_id, session_id: str) -> list:
+    """Busca somente as últimas trocas da sessão informada."""
     registros = db.query(HistoricoConversa).filter(
-        HistoricoConversa.usuario_id == usuario_id
+        HistoricoConversa.usuario_id == usuario_id,
+        HistoricoConversa.session_id == session_id,
     ).order_by(desc(HistoricoConversa.criado_em)).limit(MAX_HISTORICO).all()
     # Inverte para ordem cronológica (mais antigo primeiro)
     registros.reverse()
@@ -34,23 +36,29 @@ def chat_sindico(
     if usuario.perfil.nome not in ["sindico", "admin"]:
         raise HTTPException(status_code=403, detail="Acesso negado")
 
+    session_id = request.session_id or str(uuid.uuid4())
     system_prompt = get_system_prompt(db, usuario.perfil.nome)
-    historico = buscar_historico(db, usuario.id)
+    historico = buscar_historico(db, usuario.id, session_id)
 
     resultado = gerar_resposta(
         request.pergunta, system_prompt, usuario.perfil.nome,
-        db=db, usuario_id=str(usuario.id), historico=historico
+        db=db, usuario_id=str(usuario.id), session_id=session_id, historico=historico
     )
 
     db.add(HistoricoConversa(
         usuario_id=usuario.id,
+        session_id=session_id,
         pergunta=request.pergunta,
         resposta=resultado["resposta"],
         fontes=json.dumps(resultado["fontes"])
     ))
     db.commit()
 
-    return ChatResponse(resposta=resultado["resposta"], fontes=resultado["fontes"])
+    return ChatResponse(
+        resposta=resultado["resposta"],
+        fontes=resultado["fontes"],
+        session_id=session_id,
+    )
 
 
 @router.post("/morador", response_model=ChatResponse)
@@ -59,20 +67,26 @@ def chat_morador(
     db: Session = Depends(get_db),
     usuario = Depends(get_usuario_atual)
 ):
+    session_id = request.session_id or str(uuid.uuid4())
     system_prompt = get_system_prompt(db, "morador")
-    historico = buscar_historico(db, usuario.id)
+    historico = buscar_historico(db, usuario.id, session_id)
 
     resultado = gerar_resposta(
         request.pergunta, system_prompt, "morador",
-        db=db, usuario_id=str(usuario.id), historico=historico
+        db=db, usuario_id=str(usuario.id), session_id=session_id, historico=historico
     )
 
     db.add(HistoricoConversa(
         usuario_id=usuario.id,
+        session_id=session_id,
         pergunta=request.pergunta,
         resposta=resultado["resposta"],
         fontes=json.dumps(resultado["fontes"])
     ))
     db.commit()
 
-    return ChatResponse(resposta=resultado["resposta"], fontes=resultado["fontes"])
+    return ChatResponse(
+        resposta=resultado["resposta"],
+        fontes=resultado["fontes"],
+        session_id=session_id,
+    )

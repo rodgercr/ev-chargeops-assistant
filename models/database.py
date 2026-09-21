@@ -41,6 +41,7 @@ class HistoricoConversa(Base):
     __tablename__ = "historico_conversas"
     id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     usuario_id  = Column(UUID(as_uuid=True), ForeignKey("usuarios.id"))
+    session_id  = Column(String(100), nullable=True, index=True)
     pergunta    = Column(Text, nullable=False)
     resposta    = Column(Text, nullable=False)
     fontes      = Column(Text)

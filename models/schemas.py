@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
@@ -15,10 +15,20 @@ class Token(BaseModel):
 
 class ChatRequest(BaseModel):
     pergunta: str
+    session_id: Optional[str] = Field(default=None, max_length=100)
+
+    @field_validator("session_id")
+    @classmethod
+    def normalizar_session_id(cls, valor: Optional[str]) -> Optional[str]:
+        if valor is None:
+            return None
+        valor = valor.strip()
+        return valor or None
 
 class ChatResponse(BaseModel):
     resposta: str
-    fontes: list[str] = []
+    fontes: list[str] = Field(default_factory=list)
+    session_id: str
 
 class UsuarioCreate(BaseModel):
     username: str
@@ -50,6 +60,7 @@ class PromptResponse(BaseModel):
 class HistoricoResponse(BaseModel):
     id: UUID
     usuario: str
+    session_id: Optional[str]
     pergunta: str
     resposta: str
     fontes: Optional[str]

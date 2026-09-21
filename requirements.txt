@@ -2,6 +2,7 @@ fastapi
 uvicorn
 langchain
 langchain-community
+langchain-classic
 langchain-ollama
 langchain-core
 chromadb
@@ -11,3 +12,8 @@ bcrypt
 python-dotenv
 sqlalchemy
 psycopg2-binary
+streamlit
+pandas
+pydantic>=2.0,<3.0
+tiktoken>=0.8,<1.0
+pytest>=8.0,<10.0

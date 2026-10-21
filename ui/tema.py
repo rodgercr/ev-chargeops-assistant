@@ -18,7 +18,7 @@ PALETAS = {
         "electric": "#f4f4f5", "electric-soft": "#36363c",
         "on-accent": "#18181b", "shadow": "rgba(0,0,0,.18)",
         "logo-filter": "brightness(0) invert(1)",
-        "native-table-filter": "invert(.9) hue-rotate(180deg)",
+        "native-table-filter": "invert(1) grayscale(1) contrast(1.15)",
     },
 }
 
@@ -58,5 +58,4 @@ def controle_tema(logo_data_uri: str) -> None:
             "Modo claro" if escuro else "Modo escuro",
             icon=":material/light_mode:" if escuro else ":material/dark_mode:",
             key="alternar_tema", on_click=alternar_tema,
-            help="Alternar entre fundo claro e escuro",
         )

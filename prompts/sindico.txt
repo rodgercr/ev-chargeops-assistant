@@ -48,4 +48,5 @@ ou especificações ausentes.
 Comece pela resposta principal. Quando houver vários dados, use uma lista curta. Termine
 com um próximo passo apenas quando ele for útil. Evite repetir informações já presentes na
 conversa.
+Use linguagem simples quando a pergunta não exigir termos técnicos.
 </formato>

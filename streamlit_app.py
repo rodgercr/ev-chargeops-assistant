@@ -339,6 +339,18 @@ st.markdown(
             border: 1px solid var(--line);
             box-shadow: none !important;
         }
+        div[data-testid="stChatMessage"] [data-testid*="ChatMessageAvatar"] svg,
+        div[data-testid="stChatMessage"] [data-testid*="ChatMessageAvatar"] path,
+        div[data-testid="stChatMessage"] [data-testid*="ChatMessageAvatar"] span,
+        div[data-testid="stChatMessage"] [data-testid^="chatAvatarIcon-"] svg,
+        div[data-testid="stChatMessage"] [data-testid^="chatAvatarIcon-"] path,
+        div[data-testid="stChatMessage"] [data-testid^="chatAvatarIcon-"] span {
+            display: block !important;
+            color: var(--text) !important;
+            fill: currentColor !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
         div[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
             flex: 0 1 auto;
             width: auto;
@@ -795,7 +807,7 @@ def tabela(dados: list[dict], mensagem_vazia: str) -> None:
 
 
 def tela_operacional() -> None:
-    st.title("📊 Operação dos eletropostos")
+    st.title("Operação dos eletropostos")
     try:
         with abrir_banco() as banco:
             total_eps = banco.query(Eletroposto).count()
@@ -863,7 +875,7 @@ def tela_operacional() -> None:
 
 def tela_meus_dados() -> None:
     usuario = st.session_state.usuario
-    st.title("🔋 Minhas recargas")
+    st.title("Minhas recargas")
     try:
         with abrir_banco() as banco:
             sessoes = [
@@ -902,7 +914,7 @@ def tela_meus_dados() -> None:
 
 
 def tela_administracao() -> None:
-    st.title("🛠️ Administração")
+    st.title("Administração")
     try:
         with abrir_banco() as banco:
             usuarios = [

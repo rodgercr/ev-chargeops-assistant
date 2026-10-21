@@ -35,6 +35,17 @@ def test_css_dos_controles_carregado_no_app():
     estilos = "\n".join(m.value for m in app.markdown)
     assert ".st-key-theme_control button:hover" in estilos
     assert '.react-aria-ComboBox [role="group"]' in estilos
+    assert 'filter: var(--native-table-filter)' in estilos
+    assert '[data-testid="stTooltipContent"]' in estilos
+
+
+def test_titulos_nao_usam_emojis_e_avatares_permanecem_visiveis():
+    fonte = SCRIPT.read_text(encoding="utf-8")
+    assert 'st.title("📊' not in fonte
+    assert 'st.title("🔋' not in fonte
+    assert 'st.title("🛠️' not in fonte
+    assert 'ChatMessageAvatar"] svg' in fonte
+    assert "visibility: visible !important" in fonte
 
 
 def test_tema_claro_padrao_e_alternancia_no_login():

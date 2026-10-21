@@ -47,9 +47,16 @@ SAUDACOES = {
     "boa tarde",
     "bom dia",
     "menu",
+    "ol",
     "ola",
     "oi",
 }
+
+PERGUNTAS_SOBRE_O_ASSISTENTE = (
+    r"^(quem|o que) (e|eh) voce$",
+    r"^qual ((e|eh) )?(o )?seu nome$",
+    r"^voce (e|eh) (um )?(ser humano|humano|pessoa|robo|assistente|inteligencia artificial|ia)$",
+)
 
 PADROES_DE_CONTINUACAO = (
     r"^(e\s+)?(o|a|os|as)?\s*(anterior|ultimo|ultima|primeiro|primeira)\b",
@@ -78,9 +85,17 @@ def parece_continuacao(texto: str) -> bool:
     return any(re.search(padrao, normalizado) for padrao in PADROES_DE_CONTINUACAO)
 
 
+def pergunta_sobre_o_assistente(texto: str) -> bool:
+    """Reconhece perguntas simples de identidade sem consultar o RAG."""
+    normalizado = normalizar_texto(texto).strip(" ?.!,:;")
+    return any(re.search(padrao, normalizado) for padrao in PERGUNTAS_SOBRE_O_ASSISTENTE)
+
+
 def esta_no_escopo(texto: str, possui_contexto: bool = False) -> bool:
     """Aceita temas EV, saudações e continuações válidas de uma sessão."""
     texto_normalizado = normalizar_texto(texto)
+    if pergunta_sobre_o_assistente(texto):
+        return True
     if texto_normalizado.strip(" ?.!") in SAUDACOES:
         return True
     if any(

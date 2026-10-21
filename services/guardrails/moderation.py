@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from services.guardrails.scope_validator import esta_no_escopo, normalizar_texto
+from services.guardrails.scope_validator import (
+    SAUDACOES,
+    esta_no_escopo,
+    normalizar_texto,
+    pergunta_sobre_o_assistente,
+)
 
 
 @dataclass(frozen=True)
@@ -95,8 +100,17 @@ MENSAGENS = {
         "Consulte a ficha técnica oficial ou o suporte GoodWe."
     ),
     "fora_do_escopo": (
-        "Posso ajudar apenas com mobilidade elétrica, recarga, eletropostos e "
-        "soluções GoodWe."
+        "Não entendi bem a sua pergunta. Posso ajudar com recargas, valores e "
+        "carregadores. Você pode escrever do seu jeito. Por exemplo: "
+        '"Como faço para carregar meu carro?"'
+    ),
+    "saudacao": (
+        "Olá! Eu sou o GoodWe AI. Posso ajudar com sua recarga, com o valor "
+        "cobrado ou com o uso do carregador. O que você gostaria de saber?"
+    ),
+    "identidade": (
+        "Sou o GoodWe AI, um assistente virtual — não sou uma pessoa. Posso "
+        "explicar recargas e carregadores de um jeito simples. Como posso ajudar?"
     ),
 }
 
@@ -114,6 +128,12 @@ def avaliar_guardrails(
 ) -> ResultadoGuardrail:
     """Classifica a entrada antes de qualquer consulta ao RAG ou ao LLM."""
     normalizado = normalizar_texto(texto)
+    curto = normalizado.strip(" ?.!,:;")
+    if curto in SAUDACOES:
+        return ResultadoGuardrail(False, "saudacao", MENSAGENS["saudacao"])
+    if pergunta_sobre_o_assistente(texto):
+        return ResultadoGuardrail(False, "identidade", MENSAGENS["identidade"])
+
     verificacoes = (
         ("prompt_injection", PADROES_DE_INJECAO),
         ("seguranca_eletrica", PADROES_ELETRICOS_PERIGOSOS),

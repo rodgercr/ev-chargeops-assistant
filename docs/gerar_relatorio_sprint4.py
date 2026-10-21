@@ -90,7 +90,7 @@ story += [p("4. Equipe, entrega e limitações", "H1x"),
     Spacer(1, 0.3*cm), p("Limitações: corpus acadêmico pequeno; uma síntese HCA, não manual ChargeGrid; tarifa de demonstração não é preço real; julgador e modelo comparado compartilham a família Qwen; execução depende dos modelos Ollama previamente instalados."),
     p("Checklist: PDF com 5 páginas; relatorios RAG/modelos; interface; corpus; prompts v1/v2; resultados brutos; arquivo TXT; .env ignorado. Antes do envio, o grupo deve revisar este documento, confirmar contribuições reais, verificar o repositório público e conferir o histórico quanto a segredos."),
     p("Uso de IA generativa: houve auxílio no desenvolvimento, revisão técnica e documentação. O grupo permanece responsável por compreender, validar e apresentar a solução."),
-    p("Repositório: https://github.com/rodgercr/ev-chargeops-assistant/tree/sprint-3"),
+    p("Repositório: https://github.com/rodgercr/ev-chargeops-assistant/tree/sprint-4"),
 ]
 
 doc = SimpleDocTemplate(str(OUT), pagesize=A4, rightMargin=1.6*cm, leftMargin=1.6*cm, topMargin=1.5*cm, bottomMargin=1.7*cm, title="GoodWeAI — Relatório Sprint 4", author="Turma 1CCPK")

@@ -93,8 +93,13 @@ button:disabled { opacity: .55; }
 /* Dataframe's grid is rendered on a canvas with Streamlit's light palette.
    Invert ONLY that native surface in dark mode; DOM forms use real colors. */
 [data-testid="stDataFrame"] {
-    color-scheme: light; filter: var(--native-table-filter);
+    color-scheme: light;
+    filter: var(--native-table-filter);
+    border-color: var(--line) !important;
 }
-[role="tooltip"], [role="tooltip"] [data-testid="stMarkdownContainer"] {
+[role="tooltip"], [role="tooltip"] *,
+[data-baseweb="tooltip"], [data-baseweb="tooltip"] *,
+[data-testid="stTooltipContent"], [data-testid="stTooltipContent"] * {
     background: var(--panel-strong) !important; color: var(--text) !important;
+    border-color: var(--line) !important;
 }

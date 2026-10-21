@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "description": "Conjunto exploratório autorado a partir da base acadêmica versionada. Referências são expectativas, não resultados medidos. Requer revisão humana do grupo.",
+  "cases": [
+    {
+      "id": "rag-01",
+      "profile": "morador",
+      "category": "uso",
+      "question": "O que devo verificar antes de conectar meu veículo e fazer ao terminar a recarga?",
+      "reference": "Antes de conectar, verifique se o eletroposto está disponível e sem sinais visíveis de dano. Ao concluir a sessão, retire o veículo e libere a vaga.",
+      "source_ids": [
+        "politica-uso-eletropostos"
+      ]
+    },
+    {
+      "id": "rag-02",
+      "profile": "morador",
+      "category": "faturas",
+      "question": "Como é registrado o valor de uma recarga e quais informações devem aparecer no meu histórico?",
+      "reference": "O valor é registrado a partir da energia consumida na sessão e da tarifa vigente cadastrada. O histórico individual deve apresentar, quando disponível, data, eletroposto, energia em kWh, duração, custo e status.",
+      "source_ids": [
+        "atendimento-faturas"
+      ]
+    },
+    {
+      "id": "rag-03",
+      "profile": "morador",
+      "category": "faturas",
+      "question": "Não reconheço uma cobrança de recarga. Como proceder? Você pode cancelar a fatura?",
+      "reference": "Compare a fatura com o próprio histórico de sessões e encaminhe a divergência ao síndico. O assistente não pode alterar valores, cancelar faturas nem prometer estorno.",
+      "source_ids": [
+        "atendimento-faturas"
+      ]
+    },
+    {
+      "id": "rag-04",
+      "profile": "morador",
+      "category": "seguranca",
+      "question": "Senti cheiro de queimado e vi faíscas no carregador. Qual a orientação geral?",
+      "reference": "Interrompa o uso, mantenha distância do equipamento e avise imediatamente a administração do condomínio ou o suporte oficial responsável. Não abra, desmonte, modifique nem tente reparar o carregador.",
+      "source_ids": [
+        "seguranca-recarga"
+      ]
+    },
+    {
+      "id": "rag-05",
+      "profile": "morador",
+      "category": "energia_solar",
+      "question": "Quais informações o módulo de energia solar registra e posso consultar os dados de outro morador?",
+      "reference": "O módulo registra consumo, geração e saldo em kWh por usuário e período. O assistente deve preservar a privacidade e limitar a resposta aos dados autorizados da conta autenticada.",
+      "source_ids": [
+        "energia-solar"
+      ]
+    },
+    {
+      "id": "rag-06",
+      "profile": "sindico",
+      "category": "operacao",
+      "question": "Sou síndico. Quais dados devo identificar ao analisar uma ocorrência de eletroposto?",
+      "reference": "Identifique o código do eletroposto, a data do registro, o tipo do incidente e o status atual disponível no banco.",
+      "source_ids": [
+        "operacao-sindico"
+      ]
+    },
+    {
+      "id": "rag-07",
+      "profile": "sindico",
+      "category": "prioridade_fontes",
+      "question": "Se o documento do RAG divergir do status de um eletroposto no PostgreSQL, qual fonte deve prevalecer?",
+      "reference": "Os dados operacionais do PostgreSQL local têm prioridade. O RAG fornece orientações gerais; status, valores, moradores e medições devem vir das tabelas relacionais.",
+      "source_ids": [
+        "operacao-sindico"
+      ]
+    },
+    {
+      "id": "rag-08",
+      "profile": "morador",
+      "category": "multifonte",
+      "question": "Posso usar a conta de outro morador para iniciar uma recarga e consultar suas faturas?",
+      "reference": "O morador deve usar somente a própria conta para iniciar uma recarga. O assistente não deve expor informações financeiras de outro morador.",
+      "source_ids": [
+        "politica-uso-eletropostos",
+        "atendimento-faturas"
+      ]
+    },
+    {
+      "id": "rag-09",
+      "profile": "morador",
+      "category": "dado_ausente",
+      "question": "Qual é o valor exato da multa se eu deixar meu carro na vaga depois da recarga?",
+      "reference": "A base não informa valor de multa. Penalidades dependem das regras cadastradas pelo condomínio. Consulte o síndico, sem inventar valores ou horários.",
+      "source_ids": [
+        "politica-uso-eletropostos"
+      ]
+    },
+    {
+      "id": "rag-10",
+      "profile": "morador",
+      "category": "dado_ausente",
+      "question": "Qual é o prazo de validade dos créditos de energia solar do meu condomínio?",
+      "reference": "A base não informa prazo de validade dos créditos. Essas condições dependem da política do condomínio e da regulamentação aplicável; o assistente não deve inventar regras de crédito ou validade.",
+      "source_ids": [
+        "energia-solar"
+      ]
+    }
+  ]
+}

@@ -4,7 +4,8 @@ venv/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-data/
+data/*
+!data/knowledge_base/
 .streamlit/secrets.toml
 .agents/
 .claude/

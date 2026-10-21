@@ -22,7 +22,7 @@ if not exist ".env" (
 )
 
 call ".venv\Scripts\activate.bat"
-python -m streamlit run streamlit_app.py --server.fileWatcherType none --browser.gatherUsageStats false
+python -m streamlit run app/streamlit_app.py --server.fileWatcherType none --browser.gatherUsageStats false
 
 if errorlevel 1 (
     echo.

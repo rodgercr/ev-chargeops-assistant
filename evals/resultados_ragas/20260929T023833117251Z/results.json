@@ -1,0 +1,598 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-09-29T02:38:33.117251+00:00",
+  "status": "parcial",
+  "fingerprint": "bb942218b9632eb1b1d13ecf6f1b381819d39ae6613b1e8dfaeb5a1a0217f91f",
+  "config": {
+    "generator": "llama3.2:3b",
+    "judge": "qwen3:4b",
+    "model_digests": {
+      "llama3.2:3b": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+      "qwen3:4b": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7"
+    },
+    "embedding": "all-MiniLM-L6-v2",
+    "strictness": 3,
+    "temperature": 0,
+    "seed": 42,
+    "num_ctx": 8192,
+    "generator_num_predict": 512,
+    "judge_num_predict": 2048,
+    "timeout": 180,
+    "versions": {
+      "ragas": "0.4.3",
+      "langchain-community": "0.4.1",
+      "langchain-core": "1.6.3",
+      "langchain-ollama": "1.1.0",
+      "chromadb": "1.5.9",
+      "sentence-transformers": "6.1.0",
+      "langchain-text-splitters": "1.1.2"
+    },
+    "python": "3.11.9",
+    "top_k": 3,
+    "chunk_size": 400,
+    "chunk_overlap": 80,
+    "corpus": {
+      "politica-uso-eletropostos": {
+        "sha256": "8a28582df7c88422d64d5546ba85f45634c43261826b2ca4528cafa814a159d4",
+        "collections": [
+          "atendimento",
+          "sindico"
+        ]
+      },
+      "seguranca-recarga": {
+        "sha256": "86a37bce771c5cbc56a506d9d7f9a60c375aef73ac42aa5cec4dfb9fb2ce3ccc",
+        "collections": [
+          "atendimento",
+          "sindico"
+        ]
+      },
+      "atendimento-faturas": {
+        "sha256": "95dbd40e8090c9f94163baba46b649f0a173fd669a2147e853707f717ecc612c",
+        "collections": [
+          "atendimento",
+          "sindico"
+        ]
+      },
+      "operacao-sindico": {
+        "sha256": "9a81efd418d3c33431cad57f09f5ea963118f814c59ae031d89f44f016f135ad",
+        "collections": [
+          "sindico"
+        ]
+      },
+      "energia-solar": {
+        "sha256": "fe66e2658e3b9e1508306b7af44824747579687164389fa0b5481b0089f49707",
+        "collections": [
+          "atendimento",
+          "sindico"
+        ]
+      }
+    },
+    "files": {
+      "prompts/morador.txt": "fe22434fdb72cae82fa4d5b45d787298d0c6e244b4ea37d9e2595acfc191ae5b",
+      "prompts/sindico.txt": "3e5cbca6c37cd41f91fbfcdbd1428e4924691262c457af44346c48287435fbbb",
+      "services/llm_service.py": "946556f96096efbedaa9ec4adb798cd0ff5ab60e8d98b016bce2421bd88e399d",
+      "services/rag_retrieval.py": "dba3b534ce0bb5ff226afa2e476cfcb861d8519eded1e756a503ee08acd04e48",
+      "evals/run_ragas.py": "a655d483630401900768b3d212de922371e36c776b3dfa01e8c6d93d6171425d",
+      "evals/rag_benchmark.py": "37d751761ab8be5408515f27f780692f33d04778339af7e9c9a6097db171efbf"
+    },
+    "relevancy_language_instruction": "Generate the question in Brazilian Portuguese, matching the language of the answer."
+  },
+  "cases": [
+    {
+      "id": "rag-01",
+      "profile": "morador",
+      "category": "uso",
+      "question": "O que devo verificar antes de conectar meu veículo e fazer ao terminar a recarga?",
+      "reference": "Antes de conectar, verifique se o eletroposto está disponível e sem sinais visíveis de dano. Ao concluir a sessão, retire o veículo e libere a vaga.",
+      "source_ids": [
+        "politica-uso-eletropostos"
+      ]
+    },
+    {
+      "id": "rag-02",
+      "profile": "morador",
+      "category": "faturas",
+      "question": "Como é registrado o valor de uma recarga e quais informações devem aparecer no meu histórico?",
+      "reference": "O valor é registrado a partir da energia consumida na sessão e da tarifa vigente cadastrada. O histórico individual deve apresentar, quando disponível, data, eletroposto, energia em kWh, duração, custo e status.",
+      "source_ids": [
+        "atendimento-faturas"
+      ]
+    },
+    {
+      "id": "rag-03",
+      "profile": "morador",
+      "category": "faturas",
+      "question": "Não reconheço uma cobrança de recarga. Como proceder? Você pode cancelar a fatura?",
+      "reference": "Compare a fatura com o próprio histórico de sessões e encaminhe a divergência ao síndico. O assistente não pode alterar valores, cancelar faturas nem prometer estorno.",
+      "source_ids": [
+        "atendimento-faturas"
+      ]
+    },
+    {
+      "id": "rag-04",
+      "profile": "morador",
+      "category": "seguranca",
+      "question": "Senti cheiro de queimado e vi faíscas no carregador. Qual a orientação geral?",
+      "reference": "Interrompa o uso, mantenha distância do equipamento e avise imediatamente a administração do condomínio ou o suporte oficial responsável. Não abra, desmonte, modifique nem tente reparar o carregador.",
+      "source_ids": [
+        "seguranca-recarga"
+      ]
+    },
+    {
+      "id": "rag-05",
+      "profile": "morador",
+      "category": "energia_solar",
+      "question": "Quais informações o módulo de energia solar registra e posso consultar os dados de outro morador?",
+      "reference": "O módulo registra consumo, geração e saldo em kWh por usuário e período. O assistente deve preservar a privacidade e limitar a resposta aos dados autorizados da conta autenticada.",
+      "source_ids": [
+        "energia-solar"
+      ]
+    },
+    {
+      "id": "rag-06",
+      "profile": "sindico",
+      "category": "operacao",
+      "question": "Sou síndico. Quais dados devo identificar ao analisar uma ocorrência de eletroposto?",
+      "reference": "Identifique o código do eletroposto, a data do registro, o tipo do incidente e o status atual disponível no banco.",
+      "source_ids": [
+        "operacao-sindico"
+      ]
+    },
+    {
+      "id": "rag-07",
+      "profile": "sindico",
+      "category": "prioridade_fontes",
+      "question": "Se o documento do RAG divergir do status de um eletroposto no PostgreSQL, qual fonte deve prevalecer?",
+      "reference": "Os dados operacionais do PostgreSQL local têm prioridade. O RAG fornece orientações gerais; status, valores, moradores e medições devem vir das tabelas relacionais.",
+      "source_ids": [
+        "operacao-sindico"
+      ]
+    },
+    {
+      "id": "rag-08",
+      "profile": "morador",
+      "category": "multifonte",
+      "question": "Posso usar a conta de outro morador para iniciar uma recarga e consultar suas faturas?",
+      "reference": "O morador deve usar somente a própria conta para iniciar uma recarga. O assistente não deve expor informações financeiras de outro morador.",
+      "source_ids": [
+        "politica-uso-eletropostos",
+        "atendimento-faturas"
+      ]
+    },
+    {
+      "id": "rag-09",
+      "profile": "morador",
+      "category": "dado_ausente",
+      "question": "Qual é o valor exato da multa se eu deixar meu carro na vaga depois da recarga?",
+      "reference": "A base não informa valor de multa. Penalidades dependem das regras cadastradas pelo condomínio. Consulte o síndico, sem inventar valores ou horários.",
+      "source_ids": [
+        "politica-uso-eletropostos"
+      ]
+    },
+    {
+      "id": "rag-10",
+      "profile": "morador",
+      "category": "dado_ausente",
+      "question": "Qual é o prazo de validade dos créditos de energia solar do meu condomínio?",
+      "reference": "A base não informa prazo de validade dos créditos. Essas condições dependem da política do condomínio e da regulamentação aplicável; o assistente não deve inventar regras de crédito ou validade.",
+      "source_ids": [
+        "energia-solar"
+      ]
+    }
+  ],
+  "rows": [
+    {
+      "id": "rag-01",
+      "variant": "documentos_inteiros",
+      "category": "uso",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.13511446571665486,
+        "context_precision": null,
+        "context_recall": 1.0
+      },
+      "errors": {
+        "context_precision": "OutputParserException: Invalid json output: The output string did not satisfy the constraints given in the prompt. Fix the output string and return it.\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE "
+      },
+      "retrieval_seconds": 0.018115500002750196,
+      "retrieved": [
+        {
+          "id": "politica-uso-eletropostos",
+          "texto": "# Política demonstrativa de uso dos eletropostos\n\nEste documento compõe a base de demonstração acadêmica do GoodWeAI. Regras reais devem\nser substituídas pelas normas aprovadas pelo condomínio.\n\nO morador deve usar somente a própria conta para iniciar uma sessão de carregamento. Antes\nde conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis\nde dano. Ao concluir a sessão, deve retirar o veículo e liberar a vaga.\n\nReservas, horários, tempo máximo de permanência e eventuais penalidades dependem das regras\ncadastradas pelo condomínio. Se o contexto não apresentar uma regra específica, o assistente\ndeve orientar o morador a consultar o síndico, sem inventar valores ou horários.",
+          "metadados": {
+            "source_id": "politica-uso-eletropostos",
+            "sha256": "8a28582df7c88422d64d5546ba85f45634c43261826b2ca4528cafa814a159d4"
+          },
+          "distancia": 0.42208415269851685
+        },
+        {
+          "id": "atendimento-faturas",
+          "texto": "# Atendimento sobre sessões e faturas\n\nO valor de uma recarga é registrado a partir da energia consumida na sessão e da tarifa\nvigente cadastrada no sistema. O histórico individual deve apresentar, quando disponível,\ndata, eletroposto, energia em kWh, duração, custo e status.\n\nSe o morador não reconhecer uma cobrança, deve comparar a fatura com o próprio histórico de\nsessões e encaminhar a divergência ao síndico. O assistente não deve alterar valores, cancelar\nfaturas, prometer estorno nem expor informações financeiras de outro morador.\n\nTarifas e vencimentos devem ser obtidos dos dados atuais do sistema. Quando esses dados não\nestiverem no contexto, o assistente deve declarar a limitação.",
+          "metadados": {
+            "source_id": "atendimento-faturas",
+            "sha256": "95dbd40e8090c9f94163baba46b649f0a173fd669a2147e853707f717ecc612c"
+          },
+          "distancia": 0.4600433111190796
+        },
+        {
+          "id": "energia-solar",
+          "texto": "# Consulta de energia solar no sistema\n\nO módulo de energia solar registra, por usuário e período, consumo em kWh, geração em kWh e\nsaldo em kWh. Esses campos permitem apresentar o balanço energético já armazenado no banco.\n\nO assistente pode explicar os valores registrados, mas não deve inventar regras de rateio,\ncompensação, crédito, validade ou conversão financeira. Essas condições dependem da política\ndo condomínio e da regulamentação aplicável.\n\nQuando o morador pedir dados de outro usuário, o assistente deve preservar a privacidade e\nlimitar a resposta aos dados autorizados para a conta autenticada.",
+          "metadados": {
+            "source_id": "energia-solar",
+            "sha256": "fe66e2658e3b9e1508306b7af44824747579687164389fa0b5481b0089f49707"
+          },
+          "distancia": 0.4891355633735657
+        }
+      ],
+      "context_chars": 2027,
+      "source_recall": 1.0,
+      "generation_seconds": 4.164481799998612,
+      "response": "De acordo com a política de uso dos eletropostos, você deve verificar se o eletroposto está disponível e sem sinais visíveis de dano antes de conectar seu veículo. Além disso, é importante retirar o veículo após concluir a sessão de carregamento e liberar a vaga.",
+      "usage": {
+        "input_tokens": 1412,
+        "output_tokens": 72,
+        "total_tokens": 1484
+      },
+      "done_reason": "stop",
+      "judge_audit": {
+        "faithfulness": {
+          "seconds": 5.528242899999896,
+          "calls": [
+            {
+              "text": "{\n  \"statements\": [\n    \"You must check if the electric post is available and has no visible signs of damage before connecting your vehicle.\",\n    \"After completing the charging session, you must remove your vehicle and release the space.\"\n  ]\n}",
+              "usage": {
+                "input_tokens": 430,
+                "output_tokens": 51,
+                "total_tokens": 481
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"statements\": [\n    {\n      \"statement\": \"You must check if the electric post is available and has no visible signs of damage before connecting your vehicle.\",\n      \"reason\": \"The context states: 'Antes de conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis de dano.' This translates to checking if the electric post is available and has no visible signs of damage before connecting the vehicle.\",\n      \"verdict\": 1\n    },\n    {\n      \"statement\": \"After completing the charging session, you must remove your vehicle and release the space.\",\n      \"reason\": \"The context states: 'Ao concluir a sessão, deve retirar o veículo e liberar a vaga.' This translates to removing the vehicle and releasing the space after completing the charging session.\",\n      \"verdict\": 1\n    }\n  ]\n}",
+              "usage": {
+                "input_tokens": 1372,
+                "output_tokens": 185,
+                "total_tokens": 1557
+              },
+              "done_reason": "stop"
+            }
+          ]
+        },
+        "answer_relevancy": {
+          "seconds": 2.3579869999957737,
+          "calls": [
+            {
+              "text": "{\n  \"question\": \"What are the steps to ensure the eletroposto is safe and functional before connecting your vehicle?\",\n  \"noncommittal\": 0\n}",
+              "usage": {
+                "input_tokens": 428,
+                "output_tokens": 37,
+                "total_tokens": 465
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"question\": \"What are the steps to ensure the eletroposto is safe and functional before connecting your vehicle?\",\n  \"noncommittal\": 0\n}",
+              "usage": {
+                "input_tokens": 428,
+                "output_tokens": 37,
+                "total_tokens": 465
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"question\": \"What are the steps to ensure the eletroposto is safe and functional before connecting your vehicle?\",\n  \"noncommittal\": 0\n}",
+              "usage": {
+                "input_tokens": 428,
+                "output_tokens": 37,
+                "total_tokens": 465
+              },
+              "done_reason": "stop"
+            }
+          ]
+        },
+        "context_precision": {
+          "seconds": 5.019564599999285,
+          "calls": [
+            {
+              "text": "{\n  \"question\": \"O que devo verificar antes de conectar meu veículo e fazer ao terminar a recarga?\",\n  \"context\": \"# Política demonstrativa de uso dos eletropostos\\n\\nEste documento compõe a base de demonstração acadêmica do GoodWeAI. Regras reais devem\\nser substituídas pelas normas aprovadas pelo condomínio.\\n\\nO morador deve usar somente a própria conta para iniciar uma sessão de carregamento. Antes\\nde conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis\\nde dano. Ao concluir a sessão, deve retirar o veículo e liberar a vaga.\\n\\nReservas, horários, tempo máximo de permanência e eventuais penalidades dependem das regras\\ncadastradas pelo condomínio. Se o contexto não apresentar uma regra específica, o assistente\\ndeve orientar o morador a consultar o síndico, sem inventar valores ou horários.\",\n  \"answer\": \"Antes de conectar, verifique se o eletroposto está disponível e sem sinais visíveis de dano. Ao concluir a sessão, retire o veículo e libere a vaga.\"\n}",
+              "usage": {
+                "input_tokens": 1174,
+                "output_tokens": 274,
+                "total_tokens": 1448
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"text\": \"The output string did not satisfy the constraints given in the prompt. Fix the output string and return it.\"\n}",
+              "usage": {
+                "input_tokens": 1672,
+                "output_tokens": 29,
+                "total_tokens": 1701
+              },
+              "done_reason": "stop"
+            }
+          ]
+        },
+        "context_recall": {
+          "seconds": 2.5637119000020903,
+          "calls": [
+            {
+              "text": "{\n    \"classifications\": [\n        {\n            \"statement\": \"Antes de conectar, verifique se o eletroposto está disponível e sem sinais visíveis de dano.\",\n            \"reason\": \"The context states: 'Antes de conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis de dano.'\",\n            \"attributed\": 1\n        },\n        {\n            \"statement\": \"Ao concluir a sessão, retire o veículo e libere a vaga.\",\n            \"reason\": \"The context states: 'Ao concluir a sessão, deve retirar o veículo e liberar a vaga.'\",\n            \"attributed\": 1\n        }\n    ]\n}",
+              "usage": {
+                "input_tokens": 1468,
+                "output_tokens": 155,
+                "total_tokens": 1623
+              },
+              "done_reason": "stop"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rag-01",
+      "variant": "trechos_400_80",
+      "category": "uso",
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevancy": 0.6651849622947265,
+        "context_precision": null,
+        "context_recall": 1.0
+      },
+      "errors": {
+        "context_precision": "OutputParserException: Invalid json output: The output string did not satisfy the constraints given in the prompt. Fix the output string and return it.\nFor troubleshooting, visit: https://docs.langchain.com/oss/python/langchain/errors/OUTPUT_PARSING_FAILURE "
+      },
+      "retrieval_seconds": 0.010694700002204627,
+      "retrieved": [
+        {
+          "id": "politica-uso-eletropostos#chunk-001",
+          "texto": "O morador deve usar somente a própria conta para iniciar uma sessão de carregamento. Antes\nde conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis\nde dano. Ao concluir a sessão, deve retirar o veículo e liberar a vaga.",
+          "metadados": {
+            "sha256": "8a28582df7c88422d64d5546ba85f45634c43261826b2ca4528cafa814a159d4",
+            "source_id": "politica-uso-eletropostos"
+          },
+          "distancia": 0.3128986954689026
+        },
+        {
+          "id": "atendimento-faturas#chunk-000",
+          "texto": "# Atendimento sobre sessões e faturas\n\nO valor de uma recarga é registrado a partir da energia consumida na sessão e da tarifa\nvigente cadastrada no sistema. O histórico individual deve apresentar, quando disponível,\ndata, eletroposto, energia em kWh, duração, custo e status.",
+          "metadados": {
+            "sha256": "95dbd40e8090c9f94163baba46b649f0a173fd669a2147e853707f717ecc612c",
+            "source_id": "atendimento-faturas"
+          },
+          "distancia": 0.4540509581565857
+        },
+        {
+          "id": "energia-solar#chunk-001",
+          "texto": "O assistente pode explicar os valores registrados, mas não deve inventar regras de rateio,\ncompensação, crédito, validade ou conversão financeira. Essas condições dependem da política\ndo condomínio e da regulamentação aplicável.\n\nQuando o morador pedir dados de outro usuário, o assistente deve preservar a privacidade e\nlimitar a resposta aos dados autorizados para a conta autenticada.",
+          "metadados": {
+            "source_id": "energia-solar",
+            "sha256": "fe66e2658e3b9e1508306b7af44824747579687164389fa0b5481b0089f49707"
+          },
+          "distancia": 0.479353129863739
+        }
+      ],
+      "context_chars": 918,
+      "source_recall": 1.0,
+      "generation_seconds": 0.43313409999973373,
+      "response": "Antes de conectar seu veículo, você deve verificar se o eletroposto está disponível e sem sinais visíveis de dano.",
+      "usage": {
+        "input_tokens": 1128,
+        "output_tokens": 31,
+        "total_tokens": 1159
+      },
+      "done_reason": "stop",
+      "judge_audit": {
+        "faithfulness": {
+          "seconds": 4.0445851999975275,
+          "calls": [
+            {
+              "text": "{\n  \"statements\": [\n    \"Check if the charging station is available before connecting your vehicle.\",\n    \"Check if the charging station has no visible signs of damage before connecting your vehicle.\"\n  ]\n}",
+              "usage": {
+                "input_tokens": 391,
+                "output_tokens": 42,
+                "total_tokens": 433
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"statements\": [\n    {\n      \"statement\": \"Check if the charging station is available before connecting your vehicle.\",\n      \"reason\": \"The context states: 'Antes de conectar o veículo, deve verificar se o eletroposto está disponível' which translates to 'Before connecting the vehicle, you must check if the charging station is available'.\",\n      \"verdict\": 1\n    },\n    {\n      \"statement\": \"Check if the charging station has no visible signs of damage before connecting your vehicle.\",\n      \"reason\": \"The context states: 'Antes de conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis de dano' which translates to 'Before connecting the vehicle, you must check if the charging station is available and has no visible signs of damage'.\",\n      \"verdict\": 1\n    }\n  ]\n}",
+              "usage": {
+                "input_tokens": 1061,
+                "output_tokens": 184,
+                "total_tokens": 1245
+              },
+              "done_reason": "stop"
+            }
+          ]
+        },
+        "answer_relevancy": {
+          "seconds": 2.4171863999945344,
+          "calls": [
+            {
+              "text": "{\n  \"question\": \"Antes de conectar seu veículo, você deve verificar se o eletroposto está disponível e sem sinais visíveis de dano.\",\n  \"noncommittal\": 0\n}",
+              "usage": {
+                "input_tokens": 389,
+                "output_tokens": 45,
+                "total_tokens": 434
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"question\": \"Antes de conectar seu veículo, você deve verificar se o eletroposto está disponível e sem sinais visíveis de dano.\",\n  \"noncommittal\": 0\n}",
+              "usage": {
+                "input_tokens": 389,
+                "output_tokens": 45,
+                "total_tokens": 434
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"question\": \"Antes de conectar seu veículo, você deve verificar se o eletroposto está disponível e sem sinais visíveis de dano.\",\n  \"noncommittal\": 0\n}",
+              "usage": {
+                "input_tokens": 389,
+                "output_tokens": 45,
+                "total_tokens": 434
+              },
+              "done_reason": "stop"
+            }
+          ]
+        },
+        "context_precision": {
+          "seconds": 3.0995306000040728,
+          "calls": [
+            {
+              "text": "{\n  \"question\": \"O que devo verificar antes de conectar meu veículo e fazer ao terminar a recarga?\",\n  \"context\": \"O morador deve usar somente a própria conta para iniciar uma sessão de carregamento. Antes\\nde conectar o veículo, deve verificar se o eletroposto está disponível e sem sinais visíveis\\nde dano. Ao concluir a sessão, deve retirar o veículo e liberar a vaga.\",\n  \"answer\": \"Antes de conectar, verifique se o eletroposto está disponível e sem sinais visíveis de dano. Ao concluir a sessão, retire o veículo e libere a vaga.\"\n}",
+              "usage": {
+                "input_tokens": 1047,
+                "output_tokens": 147,
+                "total_tokens": 1194
+              },
+              "done_reason": "stop"
+            },
+            {
+              "text": "{\n  \"text\": \"The output string did not satisfy the constraints given in the prompt. Fix the output string and return it.\"\n}",
+              "usage": {
+                "input_tokens": 1402,
+                "output_tokens": 29,
+                "total_tokens": 1431
+              },
+              "done_reason": "stop"
+            }
+          ]
+        },
+        "context_recall": {
+          "seconds": 2.1546346000031917,
+          "calls": [
+            {
+              "text": "{\n    \"classifications\": [\n        {\n            \"statement\": \"Antes de conectar, verifique se o eletroposto está disponível e sem sinais visíveis de dano.\",\n            \"reason\": \"The context mentions checking if the eletroposto is available and without visible damage before connecting the vehicle.\",\n            \"attributed\": 1\n        },\n        {\n            \"statement\": \"Ao concluir a sessão, retire o veículo e libere a vaga.\",\n            \"reason\": \"The context states that after completing the session, the vehicle should be removed and the space released.\",\n            \"attributed\": 1\n        }\n    ]\n}",
+              "usage": {
+                "input_tokens": 1166,
+                "output_tokens": 137,
+                "total_tokens": 1303
+              },
+              "done_reason": "stop"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "updated_at": "2026-09-29T02:39:17.733973+00:00",
+  "summary": {
+    "documentos_inteiros": {
+      "faithfulness": {
+        "mean": 1.0,
+        "valid": 1,
+        "expected": 10
+      },
+      "answer_relevancy": {
+        "mean": 0.13511446571665486,
+        "valid": 1,
+        "expected": 10
+      },
+      "context_precision": {
+        "mean": null,
+        "valid": 0,
+        "expected": 10
+      },
+      "context_recall": {
+        "mean": 1.0,
+        "valid": 1,
+        "expected": 10
+      },
+      "source_recall": {
+        "mean": 1.0,
+        "valid": 1,
+        "expected": 10
+      },
+      "retrieval_seconds": {
+        "mean": 0.018115500002750196,
+        "valid": 1,
+        "expected": 10
+      },
+      "generation_seconds": {
+        "mean": 4.164481799998612,
+        "valid": 1,
+        "expected": 10
+      },
+      "context_chars": {
+        "mean": 2027.0,
+        "valid": 1,
+        "expected": 10
+      }
+    },
+    "trechos_400_80": {
+      "faithfulness": {
+        "mean": 1.0,
+        "valid": 1,
+        "expected": 10
+      },
+      "answer_relevancy": {
+        "mean": 0.6651849622947265,
+        "valid": 1,
+        "expected": 10
+      },
+      "context_precision": {
+        "mean": null,
+        "valid": 0,
+        "expected": 10
+      },
+      "context_recall": {
+        "mean": 1.0,
+        "valid": 1,
+        "expected": 10
+      },
+      "source_recall": {
+        "mean": 1.0,
+        "valid": 1,
+        "expected": 10
+      },
+      "retrieval_seconds": {
+        "mean": 0.010694700002204627,
+        "valid": 1,
+        "expected": 10
+      },
+      "generation_seconds": {
+        "mean": 0.43313409999973373,
+        "valid": 1,
+        "expected": 10
+      },
+      "context_chars": {
+        "mean": 918.0,
+        "valid": 1,
+        "expected": 10
+      }
+    },
+    "paired": {
+      "faithfulness": {
+        "baseline": 1.0,
+        "candidate": 1.0,
+        "delta": 0.0,
+        "valid_pairs": 1,
+        "expected": 10
+      },
+      "answer_relevancy": {
+        "baseline": 0.13511446571665486,
+        "candidate": 0.6651849622947265,
+        "delta": 0.5300704965780716,
+        "valid_pairs": 1,
+        "expected": 10
+      },
+      "context_precision": {
+        "baseline": null,
+        "candidate": null,
+        "delta": null,
+        "valid_pairs": 0,
+        "expected": 10
+      },
+      "context_recall": {
+        "baseline": 1.0,
+        "candidate": 1.0,
+        "delta": 0.0,
+        "valid_pairs": 1,
+        "expected": 10
+      }
+    }
+  }
+}

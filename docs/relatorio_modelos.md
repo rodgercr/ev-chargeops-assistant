@@ -1,39 +1,25 @@
-# Relatório de comparação de modelos
+# Relatório de modelos — Sprint 4
 
-## Origem dos resultados
+## Comparação controlada
 
-Esta comparação foi executada na etapa anterior da evolução da Sprint 3, usando o mesmo conjunto de dez casos presente em `evals/eval_set.json`. Os arquivos detalhados originais foram preservados em `evals/resultados_historicos/`. Eles são mantidos como evidência da decisão de modelo e não foram recalculados nem alterados durante a migração para a arquitetura atual.
+Os modelos `llama3.2:3b` e `qwen3:4b` receberam as mesmas 13 perguntas, nas versões v1 e v2 do pipeline RAG, com `temperature=0`, `top_p=0,9`, `max_tokens=512`, `num_ctx=8192` e seed 42. O embedding, corpus e hardware foram mantidos.
 
-## Configuração comum
+| Modelo | Tentativas | Concluídas | Taxa de conclusão | Latência média válida | Resultado |
+|---|---:|---:|---:|---:|---|
+| `llama3.2:3b` | 26 | 26 | 100% | 1,31 s | Aprovado para o chatbot |
+| `qwen3:4b` | 26 | 1 | 3,8% | 4,80 s | Reprovado nessa configuração |
 
-Os modelos foram avaliados no mesmo computador, com os mesmos prompts, casos e parâmetros. A execução utilizou memória local isolada e não gravou dados no PostgreSQL.
+O Qwen consumiu o limite de 512 tokens antes de emitir a resposta final em 25 casos. Essa falha é parte do resultado: não foram atribuídas notas RAGAS às respostas incompletas. Um ensaio isolado com limite maior terminou, porém produziu raciocínio excessivamente longo; por isso ele não substituiu o experimento fixado nem foi misturado às médias.
 
-| Modelo | Temperature | Top-p | Máx. saída | Raciocínio | Testes aprovados | Taxa de sucesso | Latência média | Tokens de saída |
-|---|---:|---:|---:|---|---:|---:|---:|---:|
-| `llama3.2:3b` | 0.2 | 0.9 | 512 | desativado | 10/10 | 100% | 0,904 s | 709 |
-| `qwen3:4b` | 0.2 | 0.9 | 512 | desativado | 8/10 | 80% | 2,537 s | 1.250 |
+## Resultado do modelo selecionado
 
-## Resultado
+| Pipeline | Faithfulness | Answer relevancy | Entrada total | Saída total |
+|---|---:|---:|---:|---:|
+| Llama v1 | 0,705 | 0,428 | 6.987 tokens | 1.290 tokens |
+| Llama v2 | 0,876 | 0,654 | 15.130 tokens | 1.259 tokens |
 
-O `llama3.2:3b` aprovou todos os casos. O `qwen3:4b` falhou nos casos `chat-01` (caminho feliz) e `structured-01` (saída estruturada). Nesse ambiente, o Llama também apresentou latência média aproximadamente 2,81 vezes menor.
-
-## Recomendação
-
-O modelo recomendado para o chatbot é o `llama3.2:3b`, por combinar a maior taxa de sucesso com a menor latência média entre os modelos avaliados.
-
-## Cobertura
-
-O conjunto cobre:
-
-- conversa dentro do escopo;
-- memória em três turnos;
-- saída estruturada com Pydantic v2;
-- prompt injection e jailbreak;
-- solicitação fora do escopo;
-- segurança elétrica;
-- aconselhamento jurídico e financeiro;
-- especificação de produto não confirmada.
+O `llama3.2:3b` foi mantido: concluiu todos os casos, apresentou ganho nas métricas e teve latência menor. A v2 usa mais tokens de entrada porque recupera quatro trechos em vez de dois, mas entregou respostas ligeiramente menores e mais bem fundamentadas.
 
 ## Limitações
 
-As métricas refletem o hardware e a execução local usados naquele momento. Tempos podem variar conforme CPU/GPU, carga do sistema e estado do Ollama. O executor atual, `evals/run_evals.py`, permite gerar uma nova medição da arquitetura integrada antes da apresentação final.
+O comparativo avalia essas versões e parâmetros no computador local; não representa um ranking universal. O julgador também é Qwen local, o que pode introduzir viés. Para reavaliar o Qwen de forma produtiva, recomenda-se criar uma nova execução identificada, com maior limite de saída e controle explícito do modo de raciocínio, sem sobrescrever a evidência atual.

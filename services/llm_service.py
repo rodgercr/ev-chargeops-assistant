@@ -20,6 +20,7 @@ from langchain_ollama import ChatOllama
 
 from models.consulta_recarga import ConsultaRecarga
 from services.guardrails import avaliar_guardrails
+from src.rag.prompt_rag import regras as regras_rag, validar_citacoes, RECUSA
 
 
 load_dotenv()
@@ -37,7 +38,8 @@ def _token_ids_aproximados(texto: str) -> list[int]:
 llm = ChatOllama(
     base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
     model=os.getenv("OLLAMA_MODEL", "llama3.2:3b"),
-    temperature=0.3,
+    temperature=float(os.getenv("OLLAMA_TEMPERATURE", "0")),
+    top_p=float(os.getenv("OLLAMA_TOP_P", "0.9")),
     num_predict=int(os.getenv("OLLAMA_MAX_TOKENS", "512")),
     custom_get_token_ids=_token_ids_aproximados,
 )
@@ -255,7 +257,8 @@ def gerar_resposta(
 
     # O serviço de embeddings é carregado somente quando uma consulta realmente usa RAG.
     # Assim, testes de guardrails e da chain não iniciam o modelo de embeddings.
-    from services.rag_service import buscar_contexto
+    from src.rag.retriever import buscar_contexto
+    system_prompt = system_prompt + "\n\n" + regras_rag("v2")
 
     if perfil in {"sindico", "admin"} and db is not None:
         from services.db_context_service import contexto_sindico
@@ -264,7 +267,7 @@ def gerar_resposta(
         contexto_docs, fontes = buscar_contexto(COLLECTIONS[perfil], pergunta)
         entradas = {
             "system_prompt": system_prompt,
-            "dados_banco": dados_banco or "Nenhum dado relacional encontrado.",
+            "dados_banco": ("[Fonte: banco-local]\n" + dados_banco) if dados_banco else "Nenhum dado relacional encontrado.",
             "contexto_docs": contexto_docs or "Nenhum documento adicional encontrado.",
             "pergunta": pergunta,
         }
@@ -279,7 +282,7 @@ def gerar_resposta(
             COLLECTIONS.get(perfil, "atendimento"), pergunta
         )
         contexto_autorizado = "\n\n".join(
-            parte for parte in (dados_banco, contexto_docs) if parte
+            parte for parte in (("[Fonte: banco-local]\n" + dados_banco) if dados_banco else "", contexto_docs) if parte
         )
         entradas = {
             "system_prompt": system_prompt,
@@ -287,8 +290,20 @@ def gerar_resposta(
             "pergunta": pergunta,
         }
 
+    if dados_banco:
+        fontes = list(dict.fromkeys([*fontes, "banco-local"]))
+    if not contexto_docs and not dados_banco and not obter_historico_sessao(session_id).messages:
+        return {"resposta": RECUSA, "fontes": [], "session_id": session_id}
     try:
-        resposta = _executar_chain(perfil, session_id, entradas)
+        resposta_bruta = _executar_chain(perfil, session_id, entradas)
+        resposta = validar_citacoes(resposta_bruta, fontes)
+        # RunnableWithMessageHistory registra a saída antes da validação de citações.
+        # Se ela for substituída pela recusa segura, mantenha na memória exatamente
+        # o texto que foi mostrado ao usuário.
+        if resposta != resposta_bruta:
+            mensagens = obter_historico_sessao(session_id).messages
+            if mensagens and mensagens[-1].type == "ai":
+                mensagens[-1].content = resposta
         return {"resposta": resposta, "fontes": fontes, "session_id": session_id}
     except Exception:
         logger.exception(

@@ -1,0 +1,3 @@
+# Dependencias opcionais para avaliar com modelos locais, sem API paga.
+-r requirements.txt
+ragas==0.4.3

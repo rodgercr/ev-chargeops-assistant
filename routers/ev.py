@@ -139,7 +139,7 @@ def registrar_sessao(dados: SessaoCreate, db: Session = Depends(get_db), u=Depen
     if u.perfil.nome not in ["admin", "sindico"]:
         raise HTTPException(status_code=403, detail="Acesso negado")
     ep = db.query(Eletroposto).filter(Eletroposto.id == str(dados.eletroposto_id)).first()
-    tarifa = ep.tarifa_kwh if ep and ep.tarifa_kwh else dados.tarifa_kwh
+    tarifa = ep.tarifa_kwh if ep and ep.tarifa_kwh is not None else dados.tarifa_kwh
     custo = round((dados.energia_kwh or 0) * tarifa, 2)
     sessao = SessaoCarregamento(
         usuario_id=str(dados.usuario_id),

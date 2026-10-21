@@ -4,22 +4,36 @@
 
 ---
 
-## Entrega da Sprint 3
+## Entrega da Sprint 4
 
-O relatório final da evolução está disponível em [`docs/relatorio_sprint3.pdf`](docs/relatorio_sprint3.pdf). O documento possui cinco páginas e apresenta a arquitetura, as implementações realizadas, as evidências de teste, a comparação de modelos e as responsabilidades da equipe.
+O relatório obrigatório está em [`docs/relatorio_sprint4.pdf`](docs/relatorio_sprint4.pdf). As evidências detalhadas estão em [`docs/relatorio_rag.md`](docs/relatorio_rag.md), [`docs/relatorio_modelos.md`](docs/relatorio_modelos.md) e `evals/sprint4/results.json`.
 
 | Item avaliado | Implementação |
 |---|---|
-| LangChain LCEL | Pipeline declarativo com prompt, `ChatOllama` e parser |
-| Memória conversacional | Histórico isolado por `session_id` e persistido no PostgreSQL local |
-| Structured output | Schema `ConsultaRecarga` validado com Pydantic v2 |
-| Context engineering | Contextos de banco, RAG, memória e pergunta separados e priorizados |
-| Guardrails | Proteções de escopo, segurança e prompt injection antes do RAG e do LLM |
-| RAG reproduzível | Base versionada em `knowledge_base/` e reconstrução com ChromaDB |
-| Evals | 23 testes unitários e 10 casos integrados aprovados |
-| Comparação de modelos | LLaMA 3.2:3b comparado com Qwen3:4b |
+| Embeddings | `nomic-embed-text:latest`, executado localmente no Ollama |
+| ChromaDB | Índice persistente, separado por hash do corpus e reconstruível |
+| RAG versionado | Prompts v1/v2, chunking 900/150 e top-k 2/4 |
+| Grounding | Citações validadas, recusa sem contexto e proteção contra injection documental |
+| RAGAS | 13 casos; faithfulness 0,705 → 0,876 e relevância 0,428 → 0,654 |
+| Comparação | Llama 3.2:3b e Qwen3:4b sob os mesmos parâmetros |
+| Interface | Streamlit com chat, autenticação e painel administrativo |
+| Persistência | PostgreSQL para dados relacionais e memória de conversa |
 
 Toda a aplicação opera localmente com **PostgreSQL, ChromaDB e Ollama**. Nenhuma credencial deve ser enviada ao repositório.
+
+### Execução local
+
+1. Instale PostgreSQL e Ollama.
+2. Copie `.env.example` para `.env` e preencha somente os valores locais.
+3. Execute `instalar.cmd`.
+4. Instale os modelos: `ollama pull llama3.2:3b` e `ollama pull nomic-embed-text`.
+5. Prepare o banco com `setup_banco.py` e `setup_ev.py`.
+6. Construa o índice com `preparar_rag_sprint4.cmd`.
+7. Inicie com `executar.cmd`.
+
+O Qwen é necessário somente para reproduzir a comparação/RAGAS: `ollama pull qwen3:4b`. A aplicação web fica disponível por padrão em `http://localhost:8501`.
+
+Para reproduzir a avaliação completa, execute `executar_ragas.cmd`. O processo instala as dependências opcionais de `requirements-ragas.txt` e preserva o resultado detalhado em `evals/sprint4/results.json`. Como o arquivo possui fingerprint da configuração, use outro caminho de saída ao alterar modelos ou parâmetros.
 
 ---
 
@@ -35,9 +49,11 @@ Toda a aplicação opera localmente com **PostgreSQL, ChromaDB e Ollama**. Nenhu
 
 **Turma:** 1CCPK
 
-### Funções no projeto
+### Responsabilidades previstas — Sprint 4
 
-| Integrante | Principais responsabilidades |
+A divisão abaixo mantém o planejamento registrado na sprint anterior. Ela não comprova a execução individual das atividades. As contribuições efetivamente realizadas devem ser confirmadas pelo grupo antes da entrega, conforme o [registro da equipe](docs/equipe_sprint4.md).
+
+| Integrante | Responsabilidades previstas |
 |---|---|
 | Rodger Costa Rios | Coordenação do grupo, integração da arquitetura e implementação do fluxo LCEL |
 | Felipe Pereira Restivo | Interface e experiência de uso no Streamlit |
@@ -127,9 +143,9 @@ O PostgreSQL local guarda usuários, recargas, faturas e demais dados estruturad
 
 ### RAG reproduzível
 
-A pasta `data/chroma` é gerada localmente e não é enviada ao GitHub. A fonte reproduzível fica em `knowledge_base/`: o `manifest.json` define IDs, arquivos e coleções, enquanto os documentos Markdown contêm a base acadêmica de demonstração. O comando `preparar_rag.cmd` valida o manifesto, gera os embeddings e reconstrói as coleções `atendimento` e `sindico`.
+A fonte da Sprint 4 fica em `data/knowledge_base/`: o manifesto define IDs, arquivos e permissões, e os Markdown formam o corpus acadêmico. `preparar_rag_sprint4.cmd` valida o corpus, gera embeddings com `nomic-embed-text` e grava um índice persistente identificado pelo hash do conteúdo. O índice gerado não é enviado ao GitHub e pode ser reconstruído sem alterar o corpus.
 
-O preparador remove somente documentos marcados como `base_reproduzivel`; documentos adicionados manualmente pelo usuário são preservados. Na primeira execução, é necessário acesso à internet para baixar o modelo de embeddings `all-MiniLM-L6-v2`.
+Depois que os modelos Ollama estiverem instalados, a indexação e a aplicação funcionam localmente. A síntese HCA referencia o manual oficial; tarifas e políticas demonstrativas são marcadas como fictícias.
 
 ---
 
@@ -242,8 +258,8 @@ ev-chargeops-assistant-sprint3/
 ├── executar.cmd                   # Inicia a interface Streamlit no Windows
 ├── executar_evals.cmd             # Executa os evals da Sprint 3
 ├── instalar.cmd                   # Cria o ambiente e instala dependências
-├── preparar_rag.cmd               # Reconstrói o ChromaDB no Windows
-├── preparar_rag.py                # Valida e indexa a base documental
+├── preparar_rag_sprint4.cmd       # Reconstrói o ChromaDB nomic da Sprint 4
+├── preparar_rag_sprint4.py        # Valida e indexa a base documental atual
 ├── main.py                        # API FastAPI opcional
 ├── setup_banco.py                 # Cria tabelas base e dados iniciais
 ├── setup_ev.py                    # Cria tabelas EV e dados de exemplo
@@ -296,7 +312,7 @@ ev-chargeops-assistant-sprint3/
 3. Preencha no `.env` a senha do seu usuário PostgreSQL local.
 4. Execute `python setup_banco.py` e `python setup_ev.py` com o ambiente ativado.
 5. Execute `python atualizar_prompts_sprint3.py`.
-6. Execute `preparar_rag.cmd` para gerar o ChromaDB local.
+6. Execute `preparar_rag_sprint4.cmd` para gerar o ChromaDB local.
 7. Confirme que o Ollama está aberto e que o modelo configurado está instalado.
 8. Execute `executar.cmd`.
 9. Acesse `http://localhost:8501` se o navegador não abrir automaticamente.
@@ -331,7 +347,7 @@ python setup_ev.py
 python atualizar_prompts_sprint3.py
 
 # 5. Reconstruir as coleções do RAG
-python preparar_rag.py
+python preparar_rag_sprint4.py
 
 # 6. Iniciar a interface
 streamlit run streamlit_app.py --server.fileWatcherType none
@@ -351,7 +367,25 @@ Desenvolvido para o **EV Challenge 2026**, iniciativa da **GoodWe** em parceria 
 
 ---
 
+## Painel administrativo de carregadores
+
+Entre com uma conta **admin** e, no menu lateral, abra **Gerenciar carregadores**.
+O painel permite cadastrar postos, editar localização, potência, tarifa e status,
+e consultar o histórico por carregador com filtros de período e status.
+Tarifas e custos históricos são preservados.
+
+Se o app já estava aberto antes da atualização, reinicie com `executar.cmd`.
+Veja o [guia do painel administrativo](docs/painel_admin.md).
+
 ## Guardrails e evals da Sprint 3
+
+> Para avaliar a qualidade da recuperação documental na Sprint 4, consulte também
+> [RAGAS e comparação do RAG](docs/ragas.md). Os testes abaixo continuam válidos
+> para a segurança e funcionalidades da Sprint 3.
+>
+> Execução real da Sprint 4: [resultados e análise](docs/comparacao_rag.md).
+> Foram avaliadas 20 respostas; a divisão experimental em trechos não demonstrou
+> melhoria geral. A configuração de recuperação usada pelo app foi preservada.
 
 Antes de consultar o RAG ou chamar o Ollama, a mensagem passa por guardrails determinísticos. Eles bloqueiam prompt injection, jailbreak, instruções elétricas perigosas, aconselhamento jurídico/financeiro, especificações não confirmadas e assuntos fora do escopo. Perguntas legítimas sobre faturas, consumo, eletropostos e recarga continuam permitidas; continuações curtas também são aceitas quando a sessão já possui contexto.
 

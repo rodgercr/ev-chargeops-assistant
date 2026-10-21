@@ -34,7 +34,7 @@ if not exist ".env" (
 
 echo.
 echo Instalacao concluida.
-echo Proximo passo: configure o .env e execute preparar_rag.cmd.
+echo Proximo passo: configure o .env e execute preparar_rag_sprint4.cmd.
 pause
 exit /b 0
 

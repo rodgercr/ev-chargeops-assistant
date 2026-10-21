@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+from ui.tema import aplicar_tema, controle_tema
 from sqlalchemy import desc, func
 
 from models.connection import SessionLocal
@@ -42,47 +43,149 @@ st.set_page_config(
     page_title="GoodWe AI",
     page_icon=str(CAMINHO_ICONE),
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded" if st.session_state.get("usuario") else "collapsed",
 )
 
+
+aplicar_tema()
 
 st.markdown(
     """
     <style>
-        :root {
-            --electric: #43e97b;
-            --electric-soft: rgba(67, 233, 123, .12);
-            --canvas: #06100b;
-            --panel: #0d1712;
-            --panel-strong: #101d16;
-            --line: rgba(151, 180, 161, .16);
-            --muted: #8da095;
-            --text: #f5f8f6;
-        }
 
         html, body, [class*="css"] { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
         #MainMenu, footer, header[data-testid="stHeader"] { visibility: hidden; }
+        /* O controle da versão instalada fica no header, não no sidebar. */
+        header[data-testid="stHeader"] { z-index: 1201 !important; }
+        [data-testid="stExpandSidebarButton"] {
+            visibility: visible !important;
+            position: fixed;
+            top: .8rem;
+            left: .75rem;
+            z-index: 1202;
+            color: var(--text) !important;
+            background: var(--panel) !important;
+            border: 1px solid var(--line) !important;
+            border-radius: 8px;
+            pointer-events: auto;
+        }
+        [data-testid="stSidebar"] { z-index: 1203 !important; }
+        [data-testid="stSidebarCollapseButton"] { visibility: visible !important; }
         [data-testid="stHeadingLink"],
         a[aria-label="Link to heading"] { display: none !important; }
         .stApp {
             color: var(--text);
             background-color: var(--canvas);
-            background-image:
-                linear-gradient(rgba(56, 128, 80, .075) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(56, 128, 80, .075) 1px, transparent 1px),
-                radial-gradient(circle at 50% 8%, rgba(37, 124, 67, .13), transparent 34rem);
-            background-size: 44px 44px, 44px 44px, auto;
+            background-image: none;
         }
         .main .block-container {
             max-width: 1040px;
             padding-top: 1.1rem;
             padding-bottom: 7rem;
         }
-        [data-testid="stSidebar"] {
-            background: #08110c;
+        [data-testid="stSidebar"], [data-testid="stSidebarContent"] {
+            background: var(--panel) !important;
+            color: var(--text);
             border-right: 1px solid var(--line);
         }
-        [data-testid="stSidebar"] [data-testid="stSidebarContent"] { padding-top: 1rem; }
+        [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+            padding-top: .4rem;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        [data-testid="stSidebarHeader"] { flex: 0 0 auto; }
+        [data-testid="stSidebarUserContent"] {
+            flex: 1 1 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+        [data-testid="stSidebarUserContent"] > div {
+            display: flex;
+            flex: 1 1 0;
+            min-height: 0;
+            width: 100%;
+        }
+        [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {
+            flex: 1 1 0;
+            min-height: 0;
+            gap: 0;
+        }
+        [data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-sidebar_main) {
+            display: flex;
+            flex: 1 1 0 !important;
+            min-height: 0;
+        }
+        [data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-sidebar_footer) {
+            flex: 0 0 auto !important;
+            margin-top: auto;
+        }
+        [data-testid="stSidebar"] .st-key-sidebar_main {
+            flex: 1 1 0 !important;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 1rem;
+        }
+        [data-testid="stSidebar"] .st-key-sidebar_footer {
+            flex: 0 0 auto !important;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--line);
+            background: var(--panel);
+            gap: .55rem;
+        }
+        [data-testid="stSidebar"] .stButton > button {
+            width: 100%;
+            min-height: 46px;
+            justify-content: flex-start;
+            gap: .65rem;
+            padding: .7rem .95rem;
+            border-radius: 14px !important;
+            border: 1px solid transparent !important;
+            background: transparent !important;
+            color: var(--muted) !important;
+            box-shadow: none !important;
+            transition: background .15s ease, border-color .15s ease, color .15s ease;
+        }
+        [data-testid="stSidebar"] .stButton > button p { font-weight: 550; }
+        [data-testid="stSidebar"] .stButton > button:hover {
+            background: var(--panel-strong) !important;
+            border-color: var(--line) !important;
+            color: var(--text) !important;
+        }
+        [data-testid="stSidebar"] .stButton > button:focus-visible {
+            outline: 2px solid var(--text) !important;
+            outline-offset: 2px;
+        }
+        [data-testid="stSidebar"] .st-key-sidebar_nav [data-testid="stBaseButton-primary"] {
+            background: var(--electric-soft) !important;
+            border-color: var(--electric-soft) !important;
+            color: var(--text) !important;
+        }
+        [data-testid="stSidebar"] .st-key-sidebar_footer .stButton > button {
+            background: var(--panel-strong) !important;
+            border-color: var(--line) !important;
+        }
+        .sidebar-user {
+            margin: .65rem 0 1.1rem;
+            padding: .9rem;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+        }
+        .sidebar-user strong { display: block; color: var(--text); overflow-wrap: anywhere; }
+        .sidebar-user span { font-size: .8rem; color: var(--muted); }
+        .sidebar-section-label {
+            color: var(--muted);
+            font-size: .68rem;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            margin-bottom: .25rem;
+        }
 
         .goodwe-brand {
             font-size: 1.55rem;
@@ -94,10 +197,10 @@ st.markdown(
         .goodwe-subtitle { color: var(--muted); margin: .2rem 0 1.5rem; }
         .stApp:has(.login-page-marker) [data-testid="stForm"] {
             padding: 1.15rem;
-            background: #0b1710 !important;
-            border: 1px solid rgba(151, 180, 161, .2);
+            background: var(--panel) !important;
+            border: 1px solid var(--line);
             border-radius: 16px;
-            box-shadow: 0 18px 48px rgba(0, 0, 0, .2);
+            box-shadow: 0 18px 48px var(--shadow);
         }
         [data-testid="InputInstructions"] { display: none !important; }
 
@@ -109,7 +212,9 @@ st.markdown(
             left: 0;
             height: 70px;
             padding: 0 1.25rem;
-            background: rgba(5, 14, 9, .9);
+            padding-left: 4rem;
+            padding-right: 11rem;
+            background: var(--canvas);
             border-bottom: 1px solid var(--line);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
@@ -151,22 +256,6 @@ st.markdown(
         }
         .chat-name { font-weight: 760; line-height: 1.1; }
         .chat-meta { color: var(--muted); font-size: .78rem; margin-top: .22rem; }
-        .local-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: .45rem;
-            padding: .38rem .7rem;
-            color: #adc0b4;
-            background: rgba(12, 25, 17, .78);
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            font-size: .76rem;
-        }
-        .local-badge i {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--electric);
-            box-shadow: 0 0 10px rgba(67, 233, 123, .8);
-        }
         .chat-hero { text-align: center; padding: 3.2rem 1rem 1.35rem; }
         .chat-hero h1 {
             margin: 0;
@@ -183,22 +272,22 @@ st.markdown(
         }
         .status-card {
             border: 1px solid var(--line);
-            background: rgba(13, 23, 18, .86);
+            background: var(--panel);
             padding: 1rem 1.2rem;
             border-radius: 16px;
         }
         .stButton > button, .stFormSubmitButton > button {
             min-height: 42px;
-            color: #eaf4ed;
-            background: rgba(13, 25, 18, .94);
+            color: var(--text);
+            background: var(--panel);
             border: 1px solid var(--line);
             border-radius: 13px;
             transition: border-color .18s ease, background .18s ease, transform .18s ease;
         }
         .stButton > button:hover, .stFormSubmitButton > button:hover {
-            color: white;
-            background: #11251a;
-            border-color: rgba(67, 233, 123, .58);
+            color: var(--text);
+            background: var(--panel-strong);
+            border-color: var(--electric-soft);
             transform: translateY(-1px);
         }
         .stButton > button:focus,
@@ -212,7 +301,7 @@ st.markdown(
             box-shadow: none !important;
         }
         .stButton > button[kind="primary"], .stFormSubmitButton > button[kind="primary"] {
-            color: #041007;
+            color: var(--on-accent);
             font-weight: 750;
             background: var(--electric);
             border-color: var(--electric);
@@ -225,7 +314,7 @@ st.markdown(
             font-weight: 650;
         }
         div[data-testid="stMetric"] {
-            background: rgba(13, 23, 18, .9);
+            background: var(--panel);
             border: 1px solid var(--line);
             padding: 1rem;
             border-radius: 16px;
@@ -245,9 +334,9 @@ st.markdown(
             width: 28px;
             height: 28px;
             min-width: 28px;
-            color: #a5aea8 !important;
+            color: var(--muted) !important;
             background: transparent !important;
-            border: 1px solid rgba(165, 174, 168, .22);
+            border: 1px solid var(--line);
             box-shadow: none !important;
         }
         div[data-testid="stChatMessage"] [data-testid="stChatMessageContent"] {
@@ -255,9 +344,9 @@ st.markdown(
             width: auto;
             max-width: min(78%, 620px);
             padding: .62rem .82rem;
-            color: #edf1ee;
-            background: rgba(255, 255, 255, .045);
-            border: 1px solid rgba(165, 174, 168, .12);
+            color: var(--text);
+            background: var(--panel);
+            border: 1px solid var(--line);
             border-radius: 4px 16px 16px 16px;
             margin: 0 !important;
         }
@@ -277,27 +366,27 @@ st.markdown(
         }
         div[data-testid="stChatMessage"]:has(.chat-role-user)
         [data-testid="stChatMessageContent"] {
-            background: rgba(67, 233, 123, .10);
-            border-color: rgba(67, 233, 123, .17);
+            background: var(--electric-soft);
+            border-color: var(--electric-soft);
             border-radius: 16px 4px 16px 16px;
         }
         [data-testid="stChatInput"] {
-            background: rgba(9, 19, 13, .96);
-            border: 1px solid rgba(95, 141, 108, .32) !important;
+            background: var(--panel);
+            border: 1px solid var(--line) !important;
             border-radius: 18px;
-            box-shadow: 0 16px 50px rgba(0, 0, 0, .28);
+            box-shadow: 0 16px 50px var(--shadow);
             outline: none !important;
         }
         [data-testid="stChatInput"]:focus,
         [data-testid="stChatInput"]:focus-within,
         [data-testid="stChatInput"] > div:focus,
         [data-testid="stChatInput"] > div:focus-within {
-            border-color: rgba(95, 141, 108, .32) !important;
+            border-color: var(--line) !important;
             outline: none !important;
             box-shadow: none !important;
         }
         [data-testid="stBottomBlockContainer"] {
-            background: rgba(5, 13, 8, .97) !important;
+            background: var(--canvas) !important;
             border-top: 1px solid var(--line);
         }
         .stApp:has(.chat-page-marker) [data-testid="stBottomBlockContainer"] > div {
@@ -307,7 +396,7 @@ st.markdown(
             margin-left: auto;
         }
         [data-testid="stChatInput"] > div {
-            background: #0d1911 !important;
+            background: var(--panel) !important;
             border: 0 !important;
             border-radius: 17px;
             outline: none !important;
@@ -316,65 +405,125 @@ st.markdown(
         [data-testid="stChatInput"] > div > div,
         [data-testid="stChatInputTextArea"] { background: transparent !important; }
         [data-testid="stChatInput"] textarea { color: var(--text); }
-        [data-testid="stChatInput"] textarea::placeholder { color: #7f9487; }
+        [data-testid="stChatInput"] textarea::placeholder { color: var(--muted); }
         [data-testid="stChatInputSubmitButton"] { color: var(--electric); }
         [data-testid="stChatInputSubmitButton"]:not(:disabled),
         [data-testid="stChatInputSubmitButton"]:not(:disabled) * {
-            color: #fff !important;
+            color: var(--on-accent) !important;
         }
         [data-testid="stChatInputSubmitButton"]:hover,
         [data-testid="stChatInputSubmitButton"]:focus,
         [data-testid="stChatInputSubmitButton"]:active {
             color: var(--electric) !important;
-            background: rgba(67, 233, 123, .14) !important;
-            border-color: rgba(67, 233, 123, .25) !important;
+            background: var(--electric-soft) !important;
+            border-color: var(--electric-soft) !important;
             outline: none !important;
             box-shadow: none !important;
         }
         [data-baseweb="input"] > div, [data-baseweb="base-input"], [data-baseweb="textarea"] {
-            background: rgba(12, 23, 16, .92) !important;
+            background: var(--panel) !important;
             border-color: var(--line) !important;
         }
-        .stTextInput input { background: #0d1911 !important; color: var(--text) !important; }
+        .stTextInput input { background: var(--panel) !important; color: var(--text) !important; }
         [data-baseweb="tab-list"] { gap: .35rem; }
         [data-baseweb="tab"] { border-radius: 10px 10px 0 0; }
-        [data-baseweb="tab-highlight"] { background-color: #fff !important; }
+        [data-baseweb="tab-highlight"] { background-color: var(--text) !important; }
         button[role="tab"][aria-selected="true"],
         [data-testid="stTab"][aria-selected="true"],
         [data-testid="stTab"][aria-selected="true"] p {
-            color: #fff !important;
+            color: var(--text) !important;
         }
         [data-testid="stTab"][aria-selected="true"] .react-aria-SelectionIndicator {
-            background: #fff !important;
+            background: var(--text) !important;
         }
         [data-testid="stTab"]:hover,
         [data-testid="stTab"][data-hovered="true"],
         [data-testid="stTab"]:hover p,
         [data-testid="stTab"][data-hovered="true"] p {
-            color: #fff !important;
+            color: var(--text) !important;
         }
         .stApp:has(.login-page-marker) [data-testid="stTextInputRootElement"] {
-            background: #0d1911 !important;
-            border: 1px solid rgba(151, 180, 161, .22) !important;
+            background: var(--panel) !important;
+            border: 1px solid var(--line) !important;
             border-radius: 8px;
             box-shadow: none !important;
         }
         .stApp:has(.login-page-marker) [data-baseweb="input"]:focus-within,
         .stApp:has(.login-page-marker) [data-baseweb="base-input"]:focus-within,
         .stApp:has(.login-page-marker) [data-testid="stTextInputRootElement"]:focus-within {
-            border: 1px solid #fff !important;
+            border: 1px solid var(--text) !important;
             outline: none !important;
-            box-shadow: 0 0 0 1px #fff !important;
+            box-shadow: 0 0 0 1px var(--text) !important;
         }
         hr { border-color: var(--line) !important; }
         .stAlert { border-radius: 14px; }
         @media (max-width: 700px) {
             .main .block-container { padding-left: 1rem; padding-right: 1rem; }
-            .chat-topbar { height: 62px; padding: 0 1rem; }
+            .chat-topbar { height: 62px; padding: 0 10rem 0 4rem; }
             .chat-topbar-spacer { height: 64px; }
             .chat-hero { padding-top: 2rem; }
-            .local-badge { display: none; }
         }
+        [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+            background: var(--canvas); color: var(--text);
+        }
+        .stApp h1, .stApp h2, .stApp h3, .stApp label,
+        [data-testid="stMarkdownContainer"], [data-testid="stMetricValue"],
+        [data-testid="stMetricLabel"], [data-testid="stWidgetLabel"],
+        [data-testid="stExpander"] summary { color: var(--text); }
+        [data-testid="stCaptionContainer"] { color: var(--muted); }
+        [data-baseweb="select"] > div, [data-testid="stNumberInputContainer"],
+        [data-testid="stTextInputRootElement"], [data-testid="stDateInput"] input,
+        [data-testid="stNumberInput"] input, [data-testid="stTextArea"] textarea,
+        [data-baseweb="popover"], [role="listbox"] {
+            background: var(--panel) !important; color: var(--text) !important;
+            border-color: var(--line) !important;
+        }
+        [role="option"], [data-baseweb="select"] span { color: var(--text) !important; }
+        [role="option"] { background: var(--panel) !important; }
+        [role="option"]:hover { background: var(--panel-strong) !important; }
+        [role="tooltip"] {
+            background: var(--panel-strong) !important;
+            color: var(--text) !important;
+            border: 1px solid var(--line);
+        }
+        [data-testid="stNumberInput"] button, [data-testid="stTextInput"] button {
+            color: var(--text) !important; background: var(--panel-strong) !important;
+        }
+        [data-testid="stChatInputSubmitButton"]:not(:disabled),
+        [data-testid="stChatInputSubmitButton"]:not(:disabled):hover {
+            background: var(--electric) !important; color: var(--on-accent) !important;
+        }
+        [data-testid="stChatInputSubmitButton"]:not(:disabled) svg {
+            fill: currentColor !important;
+        }
+        [data-testid="stChatInputSubmitButton"]:disabled {
+            background: var(--panel-strong) !important; color: var(--muted) !important;
+        }
+        [data-testid="stTab"] { color: var(--muted); }
+        .stButton > button:focus-visible, .stFormSubmitButton > button:focus-visible {
+            outline: 2px solid var(--text) !important; outline-offset: 2px;
+        }
+        .site-header {
+            position: fixed; top: 0; left: 0; right: 0; height: 70px;
+            background: var(--canvas); border-bottom: 1px solid var(--line);
+            z-index: 998; display: flex; align-items: center; padding-left: 4rem;
+            color: var(--text); font-weight: 750;
+        }
+        .st-key-theme_control {
+            position: fixed; top: .8rem; right: 1rem;
+            width: 140px !important; z-index: 1202;
+        }
+        .st-key-theme_control button { min-height: 40px; width: 100%; }
+        [data-testid="stMainBlockContainer"] { padding-top: 5.5rem; }
+        .stApp:has(.chat-page-marker) [data-testid="stMainBlockContainer"] { padding-top: 1rem; }
+        .chat-meta { overflow-wrap: anywhere; }
+        @media (max-width: 700px) {
+            .site-header { height: 62px; }
+            .chat-logo-frame { display: none; }
+            .chat-meta { font-size: .65rem; }
+            .st-key-theme_control { right: .5rem; width: 128px !important; }
+        }
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -395,6 +544,7 @@ def iniciar_estado() -> None:
         "usuario": None,
         "mensagens": [],
         "sessao_id": str(uuid.uuid4()),
+        "pagina_atual": "Chat",
     }
     for chave, valor in valores.items():
         if chave not in st.session_state:
@@ -402,13 +552,18 @@ def iniciar_estado() -> None:
 
 
 def sair() -> None:
+    for chave in list(st.session_state):
+        if chave.startswith("admin_ep_"):
+            del st.session_state[chave]
     st.session_state.usuario = None
+    st.session_state.pagina_atual = "Chat"
     st.session_state.mensagens = []
     st.session_state.sessao_id = str(uuid.uuid4())
     st.rerun()
 
 
 def nova_conversa() -> None:
+    st.session_state.pagina_atual = "Chat"
     st.session_state.mensagens = []
     st.session_state.sessao_id = str(uuid.uuid4())
     st.rerun()
@@ -541,7 +696,6 @@ def tela_chat() -> None:
                         <div class="chat-meta">{nome} · Perfil: {perfil}</div>
                     </div>
                 </div>
-                <div class="local-badge"><i></i> IA local · sessão {st.session_state.sessao_id[:8]}</div>
             </div>
         </div>
         <div class="chat-topbar-spacer"></div>
@@ -803,34 +957,53 @@ def tela_administracao() -> None:
         st.caption(f"Detalhe técnico: {erro}")
 
 
+def selecionar_pagina(pagina: str) -> None:
+    st.session_state.pagina_atual = pagina
+
+
 def aplicativo() -> None:
     iniciar_estado()
+    controle_tema(LOGO_DATA_URI)
     if not st.session_state.usuario:
         tela_login()
         return
 
     usuario = st.session_state.usuario
+    paginas = {"Chat": ":material/chat_bubble_outline:"}
+    if usuario["perfil"] in {"sindico", "admin"}:
+        paginas["Operação"] = ":material/monitoring:"
+    if usuario["perfil"] == "morador":
+        paginas["Meus dados"] = ":material/battery_charging_full:"
+    if usuario["perfil"] == "admin":
+        paginas["Gerenciar carregadores"] = ":material/ev_station:"
+        paginas["Administração"] = ":material/settings:"
+    if st.session_state.pagina_atual not in paginas:
+        st.session_state.pagina_atual = "Chat"
+
     with st.sidebar:
-        st.markdown('<div class="goodwe-brand">GOODWE<span>AI</span></div>', unsafe_allow_html=True)
-        st.caption("EV ChargeOps Assistant")
-        st.write(f"Olá, **{usuario['nome']}**")
-        st.caption(f"Perfil: {usuario['perfil'].capitalize()}")
+        with st.container(key="sidebar_main"):
+            st.markdown('<div class="goodwe-brand">GOODWE<span>AI</span></div>', unsafe_allow_html=True)
+            st.caption("EV ChargeOps Assistant")
+            st.markdown(
+                f'<div class="sidebar-user"><strong>{escape(usuario["nome"])}</strong>'
+                f'<span>Perfil: {escape(usuario["perfil"].capitalize())}</span></div>',
+                unsafe_allow_html=True,
+            )
+            st.markdown('<div class="sidebar-section-label">Navegação</div>', unsafe_allow_html=True)
+            with st.container(key="sidebar_nav"):
+                for nome, icone in paginas.items():
+                    st.button(
+                        nome, icon=icone, key=f"nav_{nome}", use_container_width=True,
+                        type="primary" if st.session_state.pagina_atual == nome else "secondary",
+                        on_click=selecionar_pagina, args=(nome,),
+                    )
+        with st.container(key="sidebar_footer"):
+            if st.button("Nova conversa", icon=":material/add_comment:", key="sidebar_nova", use_container_width=True):
+                nova_conversa()
+            if st.button("Sair", icon=":material/logout:", key="sidebar_sair", use_container_width=True):
+                sair()
 
-        paginas = ["Chat"]
-        if usuario["perfil"] in {"sindico", "admin"}:
-            paginas.append("Operação")
-        if usuario["perfil"] == "morador":
-            paginas.append("Meus dados")
-        if usuario["perfil"] == "admin":
-            paginas.append("Administração")
-
-        pagina = st.radio("Navegação", paginas, label_visibility="collapsed")
-        st.divider()
-        if st.button("Nova conversa", use_container_width=True):
-            nova_conversa()
-        if st.button("Sair", use_container_width=True):
-            sair()
-
+    pagina = st.session_state.pagina_atual
     if pagina == "Chat":
         tela_chat()
     elif pagina == "Operação":
@@ -839,6 +1012,9 @@ def aplicativo() -> None:
         tela_meus_dados()
     elif pagina == "Administração":
         tela_administracao()
+    elif pagina == "Gerenciar carregadores":
+        from ui.admin_carregadores import tela_carregadores
+        tela_carregadores()
 
 
 if __name__ == "__main__":

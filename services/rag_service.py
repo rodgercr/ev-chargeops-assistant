@@ -8,6 +8,7 @@ from pathlib import Path
 import chromadb
 from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
+from services.rag_retrieval import consultar_trechos, formatar_contexto
 
 
 load_dotenv()
@@ -59,18 +60,5 @@ def remover_documentos_gerenciados(collection_nome: str) -> int:
 def buscar_contexto(
     collection_nome: str, pergunta: str, n: int = 3
 ) -> tuple[str, list[str]]:
-    colecao = get_collection(collection_nome)
-    if colecao.count() == 0:
-        return "", []
-
-    resultados = colecao.query(
-        query_texts=[pergunta],
-        n_results=min(n, colecao.count()),
-    )
-    documentos = resultados.get("documents", [[]])[0]
-    ids = resultados.get("ids", [[]])[0]
-    trechos = [
-        f"[Fonte: {doc_id}]\n{documento}"
-        for doc_id, documento in zip(ids, documentos)
-    ]
-    return "\n\n".join(trechos), ids
+    trechos = consultar_trechos(get_collection(collection_nome), pergunta, n)
+    return formatar_contexto(trechos), [item["id"] for item in trechos]

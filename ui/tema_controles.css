@@ -1,0 +1,100 @@
+/* Streamlit uses React Aria controls as well as legacy BaseWeb widgets.
+   Keep foreground and background together for every interactive surface. */
+.st-key-theme_control button,
+.st-key-theme_control button:hover,
+.st-key-theme_control button:focus,
+.st-key-theme_control button:active {
+    background: var(--panel-strong) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--line) !important;
+}
+.st-key-theme_control button [data-testid="stMarkdownContainer"],
+.st-key-theme_control button [data-testid="stIconMaterial"] {
+    color: var(--text) !important;
+}
+[data-testid="stSidebarCollapseButton"] button,
+[data-testid="stExpandSidebarButton"] button,
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
+[data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"] {
+    color: var(--text) !important;
+}
+[data-testid="stCaptionContainer"],
+[data-testid="stCaptionContainer"] [data-testid="stMarkdownContainer"],
+.stApp [data-testid="stCaptionContainer"] p {
+    color: var(--muted) !important;
+}
+[data-testid="stForm"], [data-testid="stMetric"], [data-testid="stExpander"] {
+    background: var(--panel);
+    color: var(--text);
+    border-color: var(--line) !important;
+}
+.react-aria-ComboBox [role="group"],
+.react-aria-ComboBox input,
+.react-aria-ComboBox button,
+[data-testid="stSelectbox"] [role="group"],
+[data-testid="stMultiSelect"] [role="group"],
+[data-testid="stDateInput"] [role="group"],
+[data-testid="stDateInput"] button,
+[data-testid="stDateInput"] input {
+    background: var(--panel-strong) !important;
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+}
+[data-testid="stDateInput"] [data-rac][data-type] {
+    color: var(--text) !important;
+}
+[data-testid="stDateInput"] [data-rac][data-type][data-focused] {
+    background: var(--electric) !important; color: var(--on-accent) !important;
+}
+[data-testid="stCheckbox"] label:has(input:checked) svg {
+    color: var(--on-accent) !important; fill: var(--on-accent) !important;
+}
+.react-aria-ComboBox [role="group"]:focus-within {
+    outline: 2px solid var(--muted); outline-offset: 2px;
+}
+.react-aria-Popover, .react-aria-ListBox, [role="listbox"],
+[data-testid="stSelectboxVirtualDropdown"], [role="dialog"] {
+    background: var(--panel) !important;
+    color: var(--text) !important;
+    border-color: var(--line) !important;
+}
+[role="option"], [role="option"] * {
+    color: var(--text) !important;
+}
+[role="option"][data-focused], [role="option"][aria-selected="true"],
+[role="option"]:hover {
+    background: var(--panel-strong) !important;
+}
+[data-testid="stCheckbox"] label > div:not([data-testid]) {
+    background: var(--canvas); border-color: var(--muted);
+}
+[data-testid="stCheckbox"] label:has(input:checked) > div:not([data-testid]) {
+    background: var(--electric); border-color: var(--electric); color: var(--on-accent);
+}
+[data-testid="stCheckbox"] label:has(input:focus-visible) > div:not([data-testid]) {
+    outline: 2px solid var(--muted); outline-offset: 2px;
+}
+.stFormSubmitButton button[kind="primary"],
+.stFormSubmitButton button[kind="primary"] [data-testid="stMarkdownContainer"],
+.stFormSubmitButton button[kind="primary"] p {
+    background: var(--electric) !important;
+    color: var(--on-accent) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--muted) !important; opacity: 1; }
+button:disabled { opacity: .55; }
+[data-testid="stAlertContainer"] {
+    background: var(--panel-strong) !important; color: var(--text) !important;
+    border: 1px solid var(--line);
+}
+[data-testid="stCode"], [data-testid="stCode"] pre,
+[data-testid="stCode"] code, [data-testid="stCode"] span {
+    background: var(--panel) !important; color: var(--text) !important;
+}
+/* Dataframe's grid is rendered on a canvas with Streamlit's light palette.
+   Invert ONLY that native surface in dark mode; DOM forms use real colors. */
+[data-testid="stDataFrame"] {
+    color-scheme: light; filter: var(--native-table-filter);
+}
+[role="tooltip"], [role="tooltip"] [data-testid="stMarkdownContainer"] {
+    background: var(--panel-strong) !important; color: var(--text) !important;
+}

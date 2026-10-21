@@ -1,0 +1,14 @@
+FIAP x GoodWe Brasil - EV Challenge - Sprint 04
+Turma: 1CCPK
+
+Rodger Costa Rios - RM 571438
+Felipe Pereira Restivo - RM 570712
+Gabriel Rodrigues Zappelloni - RM 572060
+Kenichi Caio Yamamoto - RM 569815
+Maykon de Lima Silva - RM 574022
+
+Repositorio publico:
+https://github.com/rodgercr/ev-chargeops-assistant
+
+Relatorio: docs/relatorio_sprint4.pdf
+Instrucoes de execucao: README.md

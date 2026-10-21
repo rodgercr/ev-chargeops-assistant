@@ -8,7 +8,7 @@ Kenichi Caio Yamamoto - RM 569815
 Maykon de Lima Silva - RM 574022
 
 Repositorio publico:
-https://github.com/rodgercr/ev-chargeops-assistant
+https://github.com/rodgercr/ev-chargeops-assistant/tree/sprint-3
 
 Relatorio: docs/relatorio_sprint4.pdf
 Instrucoes de execucao: README.md

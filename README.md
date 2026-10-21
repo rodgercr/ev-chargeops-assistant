@@ -112,9 +112,9 @@ A separação entre agentes garante que dados sensíveis de outros moradores nã
 | **JWT (python-jose)** | Autenticação | Tokens stateless com perfis diferenciados por assinatura digital |
 | **bcrypt** | Hash de senhas | Padrão da indústria para armazenamento seguro de credenciais |
 
-### Evolução da Sprint 3 — LCEL
+### Evolução da Sprint 4 — LCEL integrado ao RAG
 
-O núcleo conversacional utiliza uma `RunnableSequence` do LangChain com o fluxo:
+Partindo da base conversacional criada na Sprint 3, a Sprint 4 integra a `RunnableSequence` do LangChain ao contexto recuperado pelo RAG:
 
 ```python
 chain = ChatPromptTemplate | ChatOllama | StrOutputParser()
@@ -122,13 +122,13 @@ chain = ChatPromptTemplate | ChatOllama | StrOutputParser()
 
 As informações recuperadas do PostgreSQL local e do RAG com ChromaDB entram como variáveis do `ChatPromptTemplate`. O `ChatOllama` executa o modelo local e o `StrOutputParser` converte a mensagem final em texto para a interface Streamlit e para a API FastAPI.
 
-### Evolução da Sprint 3 — memória por sessão
+### Evolução da Sprint 4 — memória por sessão
 
 A chain LCEL é envolvida por `RunnableWithMessageHistory`. Cada conversa recebe um `session_id` independente e utiliza `ConversationTokenBufferMemory`, com limite configurável por `MEMORY_MAX_TOKENS`. Ao iniciar uma nova conversa, o Streamlit gera outro identificador e não mistura o histórico anterior. As mensagens também são registradas no PostgreSQL local com o mesmo `session_id`, permitindo restaurar a sessão sem compartilhar contexto entre usuários ou abas.
 
-### Evolução da Sprint 3 — context engineering
+### Evolução da Sprint 4 — context engineering e grounding
 
-Os prompts existentes de síndico e morador foram atualizados para organizar identidade, objetivo, prioridade das fontes, segurança, privacidade e formato da resposta. O contexto enviado ao modelo é separado em dados do PostgreSQL local, documentos recuperados pelo RAG, histórico da sessão e pergunta atual. Conteúdo recuperado é tratado como dado, não como instrução, reduzindo o risco de prompt injection indireto e de respostas inventadas.
+Os prompts de síndico e morador foram evoluídos para organizar identidade, objetivo, prioridade das fontes, segurança, privacidade e formato da resposta. O contexto enviado ao modelo é separado em dados do PostgreSQL local, documentos recuperados pelo RAG, histórico da sessão e pergunta atual. Conteúdo recuperado é tratado como dado, não como instrução, reduzindo o risco de prompt injection indireto e de respostas inventadas. A qualidade da recuperação e das respostas foi medida com RAGAS, e os resultados comparativos estão documentados nesta entrega.
 
 ### Por que LLaMA local e não OpenAI/Gemini?
 
@@ -253,17 +253,18 @@ contatar o síndico ou o suporte GoodWe.
 ## Estrutura do Repositório
 
 ```text
-ev-chargeops-assistant-sprint3/
+ev-chargeops-assistant/
 ├── streamlit_app.py               # Interface principal: login, chat e painéis
 ├── executar.cmd                   # Inicia a interface Streamlit no Windows
-├── executar_evals.cmd             # Executa os evals da Sprint 3
+├── executar_evals.cmd             # Executa os evals integrados e guardrails
+├── executar_ragas.cmd             # Reproduz a avaliação RAGAS da Sprint 4
 ├── instalar.cmd                   # Cria o ambiente e instala dependências
 ├── preparar_rag_sprint4.cmd       # Reconstrói o ChromaDB nomic da Sprint 4
 ├── preparar_rag_sprint4.py        # Valida e indexa a base documental atual
 ├── main.py                        # API FastAPI opcional
 ├── setup_banco.py                 # Cria tabelas base e dados iniciais
 ├── setup_ev.py                    # Cria tabelas EV e dados de exemplo
-├── atualizar_prompts_sprint3.py   # Publica os prompts no PostgreSQL local
+├── atualizar_prompts_sprint3.py   # Publica os prompts (nome legado da Sprint 3)
 ├── requirements.txt               # Dependências Python
 ├── .env.example                   # Modelo seguro das variáveis de ambiente
 │
@@ -288,13 +289,16 @@ ev-chargeops-assistant-sprint3/
 │   └── db_context_service.py      # Contexto autorizado do PostgreSQL
 │
 ├── evals/
-│   ├── eval_set.json              # Conjunto reproduzível de dez casos
+│   ├── eval_set.json              # Conjunto reproduzível de casos integrados
+│   ├── rag_dataset_sprint4.json   # Dataset de avaliação do RAG da Sprint 4
 │   ├── run_evals.py               # Executor dos testes integrados
-│   └── sprint3_results.json       # Resultado da execução atual
+│   ├── run_sprint4.py             # Comparação reproduzível das configurações RAG
+│   └── sprint4/results.json       # Resultado principal da Sprint 4
 │
 ├── docs/
 │   ├── relatorio_modelos.md       # Comparação LLaMA 3.2 × Qwen3
-│   └── relatorio_sprint3.pdf      # Relatório final da entrega
+│   ├── relatorio_rag.md           # Evidências técnicas do pipeline RAG
+│   └── relatorio_sprint4.pdf      # Relatório final da Sprint 4
 │
 └── tests/                         # 23 testes automatizados
 ```
@@ -311,7 +315,7 @@ ev-chargeops-assistant-sprint3/
 2. Crie no PostgreSQL local um banco vazio chamado `cargaai`.
 3. Preencha no `.env` a senha do seu usuário PostgreSQL local.
 4. Execute `python setup_banco.py` e `python setup_ev.py` com o ambiente ativado.
-5. Execute `python atualizar_prompts_sprint3.py`.
+5. Execute `python atualizar_prompts_sprint3.py` (o nome foi mantido por compatibilidade com a Sprint 3).
 6. Execute `preparar_rag_sprint4.cmd` para gerar o ChromaDB local.
 7. Confirme que o Ollama está aberto e que o modelo configurado está instalado.
 8. Execute `executar.cmd`.
@@ -344,7 +348,7 @@ pip install -r requirements.txt
 # 4. Criar ou atualizar tabelas e inserir os dados iniciais
 python setup_banco.py
 python setup_ev.py
-python atualizar_prompts_sprint3.py
+python atualizar_prompts_sprint3.py  # nome legado mantido por compatibilidade
 
 # 5. Reconstruir as coleções do RAG
 python preparar_rag_sprint4.py
@@ -377,11 +381,11 @@ Tarifas e custos históricos são preservados.
 Se o app já estava aberto antes da atualização, reinicie com `executar.cmd`.
 Veja o [guia do painel administrativo](docs/painel_admin.md).
 
-## Guardrails e evals da Sprint 3
+## Guardrails, evals e RAGAS da Sprint 4
 
 > Para avaliar a qualidade da recuperação documental na Sprint 4, consulte também
-> [RAGAS e comparação do RAG](docs/ragas.md). Os testes abaixo continuam válidos
-> para a segurança e funcionalidades da Sprint 3.
+> [RAGAS e comparação do RAG](docs/ragas.md). Os testes abaixo validam os
+> guardrails, a segurança e as funcionalidades integradas desta entrega.
 >
 > Execução real da Sprint 4: [resultados e análise](docs/comparacao_rag.md).
 > Foram avaliadas 20 respostas; a divisão experimental em trechos não demonstrou

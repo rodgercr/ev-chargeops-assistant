@@ -27,6 +27,12 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 MEMORY_MAX_TOKENS = int(os.getenv("MEMORY_MAX_TOKENS", "2000"))
+REGRAS_ACESSIBILIDADE = """
+Use linguagem simples e acolhedora. Considere que a pessoa pode ser idosa ou ter
+pouca familiaridade com tecnologia. Prefira frases curtas e palavras comuns,
+explique termos técnicos e não critique erros de digitação. Se a pergunta estiver
+confusa, faça uma pergunta curta para entender melhor.
+""".strip()
 
 
 def _token_ids_aproximados(texto: str) -> list[int]:
@@ -258,7 +264,13 @@ def gerar_resposta(
     # O serviço de embeddings é carregado somente quando uma consulta realmente usa RAG.
     # Assim, testes de guardrails e da chain não iniciam o modelo de embeddings.
     from src.rag.retriever import buscar_contexto
-    system_prompt = system_prompt + "\n\n" + regras_rag("v2")
+    system_prompt = (
+        system_prompt
+        + "\n\n"
+        + REGRAS_ACESSIBILIDADE
+        + "\n\n"
+        + regras_rag("v2")
+    )
 
     if perfil in {"sindico", "admin"} and db is not None:
         from services.db_context_service import contexto_sindico
